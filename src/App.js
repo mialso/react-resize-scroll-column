@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import actions from './actions';
+import Grid from './Grid';
+
 import './App.css';
-import Parent from './Parent';
 
 class App extends Component {
     wheelListener = (e) => {
@@ -12,41 +13,32 @@ class App extends Component {
     }
     componentDidMount() {
         window.addEventListener('wheel', this.wheelListener);
+        this.props.appReady();
     }
     componentWillUnmount() {
         window.removeEventListener('wheel', this.wheelListener);
     }
+    componentWillReceiveProps(newProps) {
+        if (Array.isArray(newProps.items) && (newProps.items !== this.props.items)) {
+            this.props.gridDataReady(newProps.items);
+        }
+    }
     render() {
+        const { width, height, columns } = this.props;
         return (
             <div className="App">
-                <Parent
-                    key="1"
-                    minHeight={100}
-                    maxHeight={300}
-                    pos={0}
-                    childData={this.props.dataOne} />
-                <Parent
-                    minHeight={0}
-                    maxHeight={500}
-                    key="2"
-                    pos={1}
-                    childData={this.props.dataTwo} />
-                <Parent
-                    minHeight={0}
-                    maxHeight={800}
-                    key="3" 
-                    pos={2}
-                    childData={this.props.dataThree} />
+                <Grid {...{ width, height, columns }}/>
             </div>
         );
     }
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = ({ items, grid }) => {
     return {
-        dataOne: state.dataToDisplay[0],
-        dataTwo: state.dataToDisplay[1],
-        dataThree: state.dataToDisplay[2],
+        items: items.items,
+        width: grid.width,
+        height: grid.height,
+        columns: grid.columns,
     };
 };
 
