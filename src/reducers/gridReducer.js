@@ -1,5 +1,5 @@
 import { GRID_DATA_READY } from '../actions/grid';
-import { SCROLL_DOWN } from '../actions/app';
+import { SCROLL_DOWN, SCROLL_UP } from '../actions/app';
 import Column from '../models/Column';
 import {
     COLUMN_WIDTH,
@@ -14,13 +14,14 @@ function getColumnSource(queue) {
         let goRight = true;
 
         while (queue[index]) {
-            index += goRight ? 1 : -1 ;
             const reverse = yield queue[index];
             if (reverse < 0) throw new Error('reverse lower then Zero');
             if (reverse) {
                 index = reverse;
+                console.log('reverse: %s, index: %s', reverse, index);
                 goRight = !goRight;
             }
+            index += goRight ? 1 : -1 ;
         }
     }
 }
@@ -53,6 +54,10 @@ export default function gridReducer(state = initialState, action) {
         }
         case SCROLL_DOWN: {
             const columns = state.columns.map(column => column.moveDown());
+            return Object.assign({}, state, { columns });
+        }
+        case SCROLL_UP: {
+            const columns = state.columns.map(column => column.moveUp());
             return Object.assign({}, state, { columns });
         }
         default: return state;
