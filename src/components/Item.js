@@ -1,10 +1,9 @@
 import React from 'react';
-import { COLUMN_PAD } from '../constants/grid';
 
 import './Item.css';
 
 export default function Item({ data, noVisibility }) {
-    const height = data.viewArea !== 'max' ? data.viewArea : data.size - COLUMN_PAD;
+    const height = data.viewArea ? data.viewArea : data.size;
     const style = {
         height,
         display: noVisibility ? 'none' : undefined,

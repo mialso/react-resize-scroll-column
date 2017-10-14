@@ -9,7 +9,6 @@
 .Grid {
     width: 100%;
     background: green;
-    padding: 5px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -20,7 +19,6 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 5px;
 }
 
 .Item {

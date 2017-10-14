@@ -1,4 +1,5 @@
 import { GRID_DATA_READY } from '../actions/grid';
+import { SCROLL_DOWN } from '../actions/app';
 import Column from '../models/Column';
 import {
     COLUMN_WIDTH,
@@ -49,6 +50,10 @@ export default function gridReducer(state = initialState, action) {
     switch (action.type) {
         case GRID_DATA_READY: {
             return Object.assign({}, state, { columns: state.columns.map(column => new Column(getColumnSource(action.payload)())) });
+        }
+        case SCROLL_DOWN: {
+            const columns = state.columns.map(column => column.moveDown());
+            return Object.assign({}, state, { columns });
         }
         default: return state;
     }
