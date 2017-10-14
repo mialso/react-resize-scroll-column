@@ -2,28 +2,34 @@ import {
     GRID_HEIGHT,
 } from '../constants/grid';
 
-function Item(size) {
-    this.size = size;
+function Item({ data, viewArea }) {
+    this.size = data.size;
     this.topMargin = 0;
     this.bottonMargin = 0;
+    this.data = {
+        text: data.text,
+    };
+    this.viewArea = viewArea;
 }
 
 export default function Column(dataSource) {
     this.totalSize = 0;
     this.itemsCount = 0;
     this.main = [];
-    this.addItem(dataSource.next().value.size, 'topBuf');
-    this.addItem(dataSource.next().value.size, 'topBalancer');
+    this.addItem(dataSource.next().value, 'topBuf', false);
+    this.addItem(dataSource.next().value, 'topBalancer');
+
     while (this.totalSize < GRID_HEIGHT) {
-        const newItem = dataSource.next().value;
-        if ((newItem.size + this.totalSize) < GRID_HEIGHT) {
-            this.addItem(newItem.size, 'main');
+        const newItemData = dataSource.next().value;
+        if ((newItemData.size + this.totalSize) < GRID_HEIGHT) {
+            this.addItem(newItemData, 'main');
         } else {
-            break;
+            const viewArea = GRID_HEIGHT - this.totalSize;
+            this.addItem(newItemData, 'botBalancer', true, viewArea);
         }
     }
-    this.addItem(dataSource.next().value.size, 'botBalancer');
-    this.addItem(dataSource.next().value.size, 'botBuf');
+
+    this.addItem(dataSource.next().value, 'botBuf', false);
 
     this.moveDown = function() {
     };
@@ -34,13 +40,15 @@ export default function Column(dataSource) {
     this.version = 0;
 }
 
-Column.prototype.addItem = function(size, place) {
+Column.prototype.addItem = function(data, place, inView = true, viewArea = 'max') {
+    const item = new Item({ data, viewArea });
     if (place !== 'main') {
-        this[place] = new Item(size);
+        this[place] = item;
     } else {
-        this.main.push(new Item(size));
+        this.main.push(item);
     }
-    this.totalSize += size;
+    if (inView) {
+        this.totalSize += item.size;
+    }
     ++this.itemsCount;
 }
-

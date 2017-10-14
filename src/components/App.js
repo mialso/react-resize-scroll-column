@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { gridDataReady } from '../actions/grid'
-import { appReady } from '../actions/app';
+import { appReady, scrollUp, scrollDown } from '../actions/app';
 import Grid from './Grid';
 
 import './App.css';
@@ -48,5 +48,7 @@ export default connect(
     {
         gridDataReady,
         appReady,
+        scrollUp,
+        scrollDown,
     }
 )(App);

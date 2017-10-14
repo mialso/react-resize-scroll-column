@@ -9,6 +9,7 @@ function generateItems(number, date) {
         const newItem = {
             size: Number.parseInt(Math.random() * 150, 10) + 50,
             date: dayStart + dayTime,
+            text: i,
         };
         items.push(newItem);
     }
