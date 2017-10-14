@@ -4,21 +4,6 @@ export const CONTAINER_READY = 'CONTAINER_READY';
 export const CONTAINER_FIX = 'CONTAINER_FIX';
 export const CHILD_READY = 'CHILD_READY';
 export const REMOVE_CHILD = 'REMOVE_CHILD';
-export const GRID_DATA_READY = 'GRID_DATA_READY';
-export const APP_READY = 'APP_READY';
-
-export const gridDataReady = (data) => {
-    return {
-        type: GRID_DATA_READY,
-        payload: data,
-    };
-}
-
-export const appReady = () => {
-    return {
-        type: APP_READY,
-    };
-}
 
 export const scrollDown = () => {
     return {
@@ -67,6 +52,4 @@ export default {
     containerFix,
     childReady,
     removeChild,
-    gridDataReady,
-    appReady,
 };

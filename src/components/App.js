@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import actions from './actions';
+import { gridDataReady } from '../actions/grid'
+import { appReady } from '../actions/app';
 import Grid from './Grid';
 
 import './App.css';
@@ -44,5 +45,8 @@ const mapStateToProps = ({ items, grid }) => {
 
 export default connect(
     mapStateToProps,
-    actions,
+    {
+        gridDataReady,
+        appReady,
+    }
 )(App);

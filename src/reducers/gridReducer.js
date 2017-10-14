@@ -1,0 +1,55 @@
+import { GRID_DATA_READY } from '../actions/grid';
+import Column from '../models/Column';
+import {
+    COLUMN_WIDTH,
+    COLUMN_PAD,
+    GRID_WIDTH,
+    GRID_HEIGHT,
+} from '../constants/grid';
+
+function getColumnSource(queue) {
+    return function* () {
+        let index = 0;
+        let goRight = true;
+
+        while (queue[index]) {
+            index += goRight ? 1 : -1 ;
+            const reverse = yield queue[index];
+            if (reverse < 0) throw new Error('reverse lower then Zero');
+            if (reverse) {
+                index = reverse;
+                goRight = !goRight;
+            }
+        }
+    }
+}
+
+function getColumnsNumber(gridWidth, columnWidth) {
+    return Math.round(gridWidth / columnWidth);
+}
+
+function calculateColumns() {
+    const columnsNumber = getColumnsNumber(GRID_WIDTH, COLUMN_WIDTH);
+    const columns = [];
+    for (let i = 0; i < columnsNumber; ++i) {
+        columns.push({});
+    }
+    return columns;
+}
+
+const initialState = {
+    width: GRID_WIDTH,
+    height: GRID_HEIGHT,
+    columns: calculateColumns(),
+};
+
+
+
+export default function gridReducer(state = initialState, action) {
+    switch (action.type) {
+        case GRID_DATA_READY: {
+            return Object.assign({}, state, { columns: state.columns.map(column => new Column(getColumnSource(action.payload)())) });
+        }
+        default: return state;
+    }
+}

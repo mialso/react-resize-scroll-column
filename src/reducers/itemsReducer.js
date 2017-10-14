@@ -1,4 +1,4 @@
-import { APP_READY } from './actions';
+import { APP_READY } from '../actions/app';
 
 function generateItems(number, date) {
     const dayTime = Number.parseInt(Math.random() * 1000 * 60 * 60 * 24, 10);
