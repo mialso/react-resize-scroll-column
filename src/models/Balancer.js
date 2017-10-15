@@ -45,17 +45,29 @@ Balancer.prototype.isScrollable = function(scrollSize) {
     return this.viewArea > scrollSize;
 }
 */
-Balancer.prototype.resize = function(size) {
+Balancer.prototype.resize = function(size, doScroll = true) {
     if (!this.size) return;
     const newViewArea = this.viewArea + size;
-    if (newViewArea > this.size + COLUMN_PAD) {
-        this.scrollNext = newViewArea - this.size - COLUMN_PAD;
-        this.viewArea = this.size;
-    } else if(newViewArea <= 0) {
-        this.scrollNext = -newViewArea;
-        this.viewArea = 0;
+    if (doScroll) {
+        if (newViewArea > this.size + COLUMN_PAD) {
+            this.scrollNext = newViewArea - this.size - COLUMN_PAD;
+            this.viewArea = this.size;
+        } else if(newViewArea <= 0) {
+            this.scrollNext = -newViewArea;
+            this.viewArea = 0;
+        } else {
+            this.viewArea += size;
+        }
+        return size;
     } else {
-        this.viewArea += size;
+        let notScrolled = 0;
+        if (newViewArea > this.size) {
+            notScrolled = newViewArea - this.size
+        }
+        this.scrollNext = 0;
+        this.viewArea = newViewArea - notScrolled;
+        // return the resized amount
+        return size - notScrolled;
     }
 }
 

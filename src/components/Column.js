@@ -5,7 +5,7 @@ import './Column.css';
 
 export default function Column({ data }) {
     const items = typeof data.getItemsCount === 'function' && data.getItemsCount();
-    if (!items) return null;
+    if (items < 2) return null;
     return (
         <div className="Column">
             <Item data={data.balancer.top} addStyle={{marginTop: data.balancer.top.getMargin()}} />

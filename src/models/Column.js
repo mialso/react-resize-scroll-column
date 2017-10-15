@@ -12,11 +12,11 @@ export default function Column(dataSource) {
     this.dataDirection = 'bottom';
     this.balancer = {};
     this.addBalancer({ type: 'top' });
-    this.moreData = true;
+    this.nextItem = null;
 
     while (this.getArea() < GRID_HEIGHT) {
         const itemData = this.getNextItem();
-        if ((itemData.size + this.getArea()) < GRID_HEIGHT) {
+        if ((itemData.size + this.getArea() + COLUMN_PAD) < GRID_HEIGHT) {
             this.main.push(new Item(itemData));
         } else {
             const viewArea = GRID_HEIGHT - this.getArea();
@@ -29,7 +29,14 @@ export default function Column(dataSource) {
 }
 
 Column.prototype.getNextItem = function() {
-    return this.source[this.dataDirection].pop();
+    let nextItem;
+    if (this.nextItem) {
+        nextItem = this.nextItem;
+        this.nextItem = null;
+    } else {
+        nextItem = this.source[this.dataDirection].pop();
+    }
+    return nextItem;
 }
 
 Column.prototype.pushBackToSource = function(type) {
@@ -46,20 +53,28 @@ Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
 Column.prototype.moveDown = function() {
     if (this.dataDirection !== 'bottom') {
         this.dataDirection = 'bottom';
+        if (this.nextItem) {
+            // get next item back to source
+            this.source.top.push(this.nextItem);
+            this.nextItem = null;
+        }
     }
-    this.moreData = this.source[this.dataDirection].isDataAvailable();
-    // update top balancer
-    this.balancer.top.resize(-GRID_SCROLL_HEIGHT);
-    let scrollNext = this.balancer.top.scrollNext;
-    if (scrollNext && this.moreData) {
-        // move main to balancer
-        this.moveMainToBalancer('top', scrollNext);
+    if (!this.nextItem && this.source.bottom.isDataAvailable()) {
+        this.nextItem = this.source.bottom.pop();
     }
     // update bottom balancer
-    this.balancer.bottom.resize(GRID_SCROLL_HEIGHT);
-    scrollNext = this.balancer.bottom.scrollNext;
-    if (scrollNext && this.moreData) {
+    const scrollTop = this.balancer.bottom.resize(GRID_SCROLL_HEIGHT, !!this.nextItem);
+    let scrollNext = this.balancer.bottom.scrollNext;
+    if (scrollNext && !!this.nextItem) {
         this.moveBalancerToMain('bottom', scrollNext);
+    }
+    if (!scrollTop) return this;
+    // update top balancer
+    this.balancer.top.resize(-scrollTop);
+    scrollNext = this.balancer.top.scrollNext;
+    if (scrollNext) {
+        // move main to balancer
+        this.moveMainToBalancer('top', scrollNext);
     }
     return this;
 };
@@ -67,18 +82,27 @@ Column.prototype.moveDown = function() {
 Column.prototype.moveUp = function() {
     if (this.dataDirection !== 'top') {
         this.dataDirection = 'top';
+        if (this.nextItem) {
+            // get next item back to source
+            this.source.bottom.push(this.nextItem);
+            this.nextItem = null;
+        }
     }
-    this.moreData = this.source[this.dataDirection].isDataAvailable();
+    // get next item in advance
+    if (!this.nextItem && this.source.top.isDataAvailable()) {
+        this.nextItem = this.source.top.pop();
+    }
     // update top balancer
-    this.balancer.top.resize(GRID_SCROLL_HEIGHT);
+    const scrollBottom = this.balancer.top.resize(GRID_SCROLL_HEIGHT, !!this.nextItem);
     let scrollNext = this.balancer.top.scrollNext;
-    if (scrollNext && this.moreData) {
+    if (scrollNext && !!this.nextItem) {
         this.moveBalancerToMain('top', scrollNext);
     }
+    if (!scrollBottom) return this;
     // update bottom balancer
-    this.balancer.bottom.resize(-GRID_SCROLL_HEIGHT);
+    this.balancer.bottom.resize(-scrollBottom);
     scrollNext = this.balancer.bottom.scrollNext;
-    if (scrollNext && this.moreData) {
+    if (scrollNext) {
         this.moveMainToBalancer('bottom', scrollNext);
     }
     return this;
@@ -104,7 +128,6 @@ Column.prototype.moveMainToBalancer = function(type, scrollNext) {
 }
 
 Column.prototype.moveBalancerToMain = function(type, scrollNext) {
-    if (!(this.balancer[type].size && this.source[this.dataDirection].isDataAvailable())) return;
     const oldBalancer = this.balancer[type];
     switch (type) {
         case 'top': this.main.unshift(new Item(oldBalancer.getRaw())); break;
