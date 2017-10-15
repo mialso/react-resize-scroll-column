@@ -11,21 +11,25 @@ const emptyItem = {
 
 export function Item(data = emptyItem) {
     this.size = data.size;
-    this.topMargin = 0;
-    this.bottonMargin = 0;
     this.data = {
         text: data.data.text,
     };
 }
 
-export function Buff(itemData) {
-    Item.call(this, itemData);
-    this.noDisplay = true;
+Item.prototype.getSize = function() {
+    return this.size;
 }
 
 export function Balancer(itemData, viewArea) {
     Item.call(this, itemData);
     this.viewArea = viewArea ? viewArea : this.size;
+}
+
+Balancer.prototype = Object.create(Item.prototype);
+Balancer.prototype.constructor = Balancer;
+
+Balancer.prototype.getSize = function() {
+    return this.viewArea < this.size ? this.viewArea : this.size;
 }
 
 Balancer.prototype.isScrollable = function(scrollSize) {

@@ -3,30 +3,26 @@ import {
     GRID_SCROLL_HEIGHT,
     COLUMN_PAD,
 } from '../constants/grid';
-import { Item, Balancer, Buff } from './Balancer';
+import { Item, Balancer } from './Balancer';
 
 export default function Column(dataSource) {
     this.source = dataSource;
     this.main = [];
     this.switchDataDirection = false;
     this.dataDirection = 'bottom';
-    this.buffer = {};
     this.balancer = {};
-    this.replaceBuffer({ type: 'top' });
     this.addBalancer({ type: 'top' });
 
-    while (this.getSize() < GRID_HEIGHT) {
+    while (this.getArea() < GRID_HEIGHT) {
         const itemData = dataSource.next().value;
-        // TODO remove COLUMN_PAD from this logic
-        if ((itemData.size + this.getSize() + COLUMN_PAD) < GRID_HEIGHT) {
+        if ((itemData.size + this.getArea()) < GRID_HEIGHT) {
             this.pushItem(itemData);
         } else {
-            const viewArea = GRID_HEIGHT - this.getSize() - COLUMN_PAD;
+            const viewArea = GRID_HEIGHT - this.getArea();
             this.addBalancer({ type: 'bottom', itemData, viewArea });
+            break;
         }
     }
-
-    this.replaceBuffer({ type: 'bottom' });
 
     this.version = 0;
 }
@@ -34,7 +30,7 @@ export default function Column(dataSource) {
 Column.prototype.getNextItem = function() {
     let source;
     if (this.switchDataDirection) {
-        source = this.source.next(this.buffer[this.dataDirection].data.text);
+        source = this.source.next(this.balancer[this.dataDirection].data.text);
         this.switchDataDirection = false;
     } else {
         source = this.source.next();
@@ -59,11 +55,6 @@ Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
     this.balancer[type] = new Balancer(dataToAdd, viewArea);
 }
 
-Column.prototype.replaceBuffer = function({ type, itemData }) {
-    const dataToAdd = itemData || this.getNextItem();
-    this.buffer[type] = new Buff(dataToAdd);
-}
-
 Column.prototype.moveDown = function() {
     if (this.dataDirection !== 'bottom') {
         this.dataDirection = 'bottom';
@@ -71,16 +62,16 @@ Column.prototype.moveDown = function() {
     }
     // update top balancer
     this.balancer.top.resize(-GRID_SCROLL_HEIGHT);
-    if (this.balancer.top.scrollNext) {
-        // move balancer to buffer
-        this.moveBalancerToBuf('top');
+    let scrollNext = this.balancer.top.scrollNext;
+    if (scrollNext) {
+        // move main to balancer
+        this.moveMainToBalancer('top', scrollNext);
     }
     // update bottom balancer
     this.balancer.bottom.resize(GRID_SCROLL_HEIGHT);
-    const scrollNext = this.balancer.bottom.scrollNext;
+    scrollNext = this.balancer.bottom.scrollNext;
     if (scrollNext) {
-        this.moveBalancerToMain('bottom');
-        this.moveBufToBalancer('bottom', scrollNext);
+        this.moveBalancerToMain('bottom', scrollNext);
     }
     return this;
 };
@@ -92,26 +83,21 @@ Column.prototype.moveUp = function() {
     }
     // update top balancer
     this.balancer.top.resize(GRID_SCROLL_HEIGHT);
-    const scrollNext = this.balancer.top.scrollNext;
+    let scrollNext = this.balancer.top.scrollNext;
     if (scrollNext) {
-        this.moveBalancerToMain('top');
-        this.moveBufToBalancer('top', scrollNext);
+        this.moveBalancerToMain('top', scrollNext);
     }
     // update bottom balancer
     this.balancer.bottom.resize(-GRID_SCROLL_HEIGHT);
-    if (this.balancer.bottom.scrollNext) {
+    scrollNext = this.balancer.bottom.scrollNext;
+    if (scrollNext) {
         // move balancer to buffer
-        this.moveBalancerToBuf('bottom');
+        this.moveMainToBalancer('bottom', scrollNext);
     }
     return this;
 }
 
-Column.prototype.moveBalancerToBuf = function(type) {
-    if (!this.balancer[type].size) return;
-    const oldBalancer = this.balancer[type];
-    const scrollNext = oldBalancer.scrollNext;
-
-    this.buffer[type] = new Buff(oldBalancer);
+Column.prototype.moveMainToBalancer = function(type, scrollNext) {
     let newBalancerItem;
     switch(type) {
         case 'top': newBalancerItem = this.main.shift(); break;
@@ -123,15 +109,11 @@ Column.prototype.moveBalancerToBuf = function(type) {
         return;
     }
     let newViewArea = 0;
-    if (scrollNext < COLUMN_PAD) {
-        newViewArea = newBalancerItem.size + COLUMN_PAD - scrollNext;
-    } else {
-        newViewArea = newBalancerItem.size + COLUMN_PAD - scrollNext;
-    }
+    newViewArea = newBalancerItem.size + COLUMN_PAD - scrollNext;
     this.balancer[type] = new Balancer(newBalancerItem, newViewArea);
-};
+}
 
-Column.prototype.moveBalancerToMain = function(type) {
+Column.prototype.moveBalancerToMain = function(type, scrollNext) {
     if (!this.balancer[type].size) return;
     const oldBalancer = this.balancer[type];
     switch (type) {
@@ -139,22 +121,14 @@ Column.prototype.moveBalancerToMain = function(type) {
         case 'bottom': this.pushItem(oldBalancer); break;
         default: throw new Error('mbm: wrong balancer type');
     }
-    this.balancer[type] = new Balancer();
+    this.balancer[type] = new Balancer(this.getNextItem(), scrollNext);
 };
 
-Column.prototype.moveBufToBalancer = function(type, scrollNext) {
-    if (!this.buffer[type].size) return;
-    const newBalancerItem = this.buffer[type];
-    const newViewArea = scrollNext;
-    this.balancer[type] = new Balancer(newBalancerItem, newViewArea);
-    this.replaceBuffer({ type });
-};
-
-Column.prototype.getSize = function() {
-    const buffers = Object.keys(this.buffer).map(key => this.buffer[key]).reduce(countSize, 0);
-    const balancers = Object.keys(this.balancer).map(key => this.balancer[key]).reduce(countSize, 0);
-    const main = this.main.reduce(countSize, 0);
-    return buffers + balancers + main;
+Column.prototype.getArea = function() {
+    const balancers = Object.keys(this.balancer).map(key => this.balancer[key]).reduce(countArea, 0);
+    const main = this.main.reduce(countArea, 0);
+    const padding = (this.main.length + 1) * COLUMN_PAD;
+    return balancers + main + padding;
 };
 
 Column.prototype.getItemsCount = function() {
@@ -165,9 +139,10 @@ Column.prototype.getItemsCount = function() {
     return balancerItems + this.main.length;
 };
 
-function countSize(acc, item) {
-    if (!item.size) {
+function countArea(acc, item) {
+    const viewArea = item.viewArea || item.size;
+    if (!viewArea) {
         return acc;
     }
-    return acc + item.size;
+    return acc + viewArea;
 }

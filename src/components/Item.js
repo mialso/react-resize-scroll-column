@@ -1,12 +1,12 @@
 import React from 'react';
+import { COLUMN_PAD } from '../constants/grid';
 
 import './Item.css';
 
 export default function Item({ data, noVisibility, addStyle }) {
-    const height = data.viewArea ? data.viewArea : data.size;
     const style = Object.assign(
         {
-            height,
+            height: data.getSize(),
             display: noVisibility ? 'none' : undefined,
         },
         addStyle,
