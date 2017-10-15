@@ -1,5 +1,5 @@
 import React from 'react';
-import Item from './Item';
+import { Item, BalancerItem } from './Item';
 
 import './Column.css';
 
@@ -8,9 +8,9 @@ export default function Column({ data }) {
     if (items < 2) return null;
     return (
         <div className="Column">
-            <Item data={data.balancer.top} addStyle={{marginTop: data.balancer.top.getMargin()}} />
+            <BalancerItem data={data.balancer.top} type="top"/>
             { data.main.map((item, index) => <Item key={index} data={item} />) }
-            <Item data={data.balancer.bottom} addStyle={{marginBottom: data.balancer.bottom.getMargin()}} />
+            <BalancerItem data={data.balancer.bottom} type="bottom"/>
         </div>
     );
 }

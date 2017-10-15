@@ -2,17 +2,36 @@ import React from 'react';
 
 import './Item.css';
 
-export default function Item({ data, addStyle }) {
-    const style = Object.assign(
-        {
-            height: data.getSize(),
-        },
-        addStyle,
-    );
+function Card({ data, childStyle }) {
     return (
-        <div className="Item" style={style}>
-            n: { data.data.text }
-            <p>s: {data.size} -> vA: {data.viewArea}</p>
+        <div className="Card" style={childStyle}>
+            <p style={{ height: data.size / 2 }}>n: { data.data.text }</p>
+            <p style={{ height: data.size / 2 }}>s: {data.size} -> vA: {data.viewArea}</p>
+        </div>
+    );
+}
+
+export function Item({ data }) {
+    return (
+        <div className="Item" style={{ height: data.getSize() }}>
+            <Card data={data} />
+        </div>
+    );
+}
+
+export function BalancerItem({ data, type }) {
+    const style = {
+        marginTop: type === 'top' ? data.getMargin() : 0,
+        marginBottom: type === 'bottom' ? data.getMargin() : 0,
+        height: data.getSize(),
+    };
+    const childStyle = {
+        marginTop: type === 'top' ? data.viewArea - data.size : 0,
+        overflow: type === 'bottom' ? 'hidden' : 'visible',
+    };
+    return (
+        <div className="BalancerItem" style={style}>
+            <Card childStyle={childStyle} data={data} />
         </div>
     );
 }
