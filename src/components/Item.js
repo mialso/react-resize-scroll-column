@@ -1,13 +1,11 @@
 import React from 'react';
-import { COLUMN_PAD } from '../constants/grid';
 
 import './Item.css';
 
-export default function Item({ data, noVisibility, addStyle }) {
+export default function Item({ data, addStyle }) {
     const style = Object.assign(
         {
             height: data.getSize(),
-            display: noVisibility ? 'none' : undefined,
         },
         addStyle,
     );

@@ -1,12 +1,9 @@
-import {
-    GRID_HEIGHT,
-    GRID_SCROLL_HEIGHT,
-    COLUMN_PAD,
-} from '../constants/grid';
+import { COLUMN_PAD } from '../constants/grid';
 
 const emptyItem = {
     size: 0,
     data: { text: '' },
+    type: 'empty',
 };
 
 export function Item(data = emptyItem) {
@@ -14,15 +11,22 @@ export function Item(data = emptyItem) {
     this.data = {
         text: data.data.text,
     };
+    this.type = data.type || 'normal';
+    this._raw = data;
 }
 
 Item.prototype.getSize = function() {
     return this.size;
 }
 
+Item.prototype.getRaw = function() {
+    return this._raw;
+}
+
 export function Balancer(itemData, viewArea) {
     Item.call(this, itemData);
     this.viewArea = viewArea ? viewArea : this.size;
+    console.log('new balancer: %o', this);
 }
 
 Balancer.prototype = Object.create(Item.prototype);

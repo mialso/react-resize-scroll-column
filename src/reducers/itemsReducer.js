@@ -12,6 +12,7 @@ function generateItems(number, date) {
             data: {
                 text: i,
             },
+            index: i,
         };
         items.push(newItem);
     }
@@ -27,7 +28,7 @@ const initialState = {
 export default (state = initialState, action) => {
     switch (action.type) {
         case APP_READY: {
-            state.items = generateItems(20, new Date(Date.now()).getDate().toString());
+            state.items = generateItems(50, new Date(Date.now()).getDate().toString());
             return Object.assign({}, state);
         }
         default: return state;

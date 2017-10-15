@@ -12,11 +12,12 @@ export default function Column(dataSource) {
     this.dataDirection = 'bottom';
     this.balancer = {};
     this.addBalancer({ type: 'top' });
+    this.moreData = true;
 
     while (this.getArea() < GRID_HEIGHT) {
-        const itemData = dataSource.next().value;
+        const itemData = this.getNextItem();
         if ((itemData.size + this.getArea()) < GRID_HEIGHT) {
-            this.pushItem(itemData);
+            this.main.push(new Item(itemData));
         } else {
             const viewArea = GRID_HEIGHT - this.getArea();
             this.addBalancer({ type: 'bottom', itemData, viewArea });
@@ -28,26 +29,13 @@ export default function Column(dataSource) {
 }
 
 Column.prototype.getNextItem = function() {
-    let source;
-    if (this.switchDataDirection) {
-        source = this.source.next(this.balancer[this.dataDirection].data.text);
-        this.switchDataDirection = false;
-    } else {
-        source = this.source.next();
-    }
-    if (source.done) {
-        return undefined;
-    }
-    console.log('got item: %s', source.value.data.text);
-    return source.value;
+    return this.source[this.dataDirection].pop();
 }
 
-Column.prototype.pushItem = function(data) {
-    this.main.push(new Item(data));
-}
-
-Column.prototype.unshiftItem = function(data) {
-    this.main.unshift(new Item(data));
+Column.prototype.pushBackToSource = function(type) {
+    if (this.balancer[type].type === 'normal') {
+        this.source[type].push(this.balancer[type].getRaw());
+    }
 }
 
 Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
@@ -58,19 +46,19 @@ Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
 Column.prototype.moveDown = function() {
     if (this.dataDirection !== 'bottom') {
         this.dataDirection = 'bottom';
-        this.switchDataDirection = true;
     }
+    this.moreData = this.source[this.dataDirection].isDataAvailable();
     // update top balancer
     this.balancer.top.resize(-GRID_SCROLL_HEIGHT);
     let scrollNext = this.balancer.top.scrollNext;
-    if (scrollNext) {
+    if (scrollNext && this.moreData) {
         // move main to balancer
         this.moveMainToBalancer('top', scrollNext);
     }
     // update bottom balancer
     this.balancer.bottom.resize(GRID_SCROLL_HEIGHT);
     scrollNext = this.balancer.bottom.scrollNext;
-    if (scrollNext) {
+    if (scrollNext && this.moreData) {
         this.moveBalancerToMain('bottom', scrollNext);
     }
     return this;
@@ -79,46 +67,48 @@ Column.prototype.moveDown = function() {
 Column.prototype.moveUp = function() {
     if (this.dataDirection !== 'top') {
         this.dataDirection = 'top';
-        this.switchDataDirection = true;
     }
+    this.moreData = this.source[this.dataDirection].isDataAvailable();
     // update top balancer
     this.balancer.top.resize(GRID_SCROLL_HEIGHT);
     let scrollNext = this.balancer.top.scrollNext;
-    if (scrollNext) {
+    if (scrollNext && this.moreData) {
         this.moveBalancerToMain('top', scrollNext);
     }
     // update bottom balancer
     this.balancer.bottom.resize(-GRID_SCROLL_HEIGHT);
     scrollNext = this.balancer.bottom.scrollNext;
-    if (scrollNext) {
-        // move balancer to buffer
+    if (scrollNext && this.moreData) {
         this.moveMainToBalancer('bottom', scrollNext);
     }
     return this;
 }
 
 Column.prototype.moveMainToBalancer = function(type, scrollNext) {
-    let newBalancerItem;
+    // move balancer item back to source in case it is normal
+    this.pushBackToSource(type);
+    // create new balancer from main
+    let newBalancerData;
     switch(type) {
-        case 'top': newBalancerItem = this.main.shift(); break;
-        case 'bottom': newBalancerItem = this.main.pop(); break;
+        case 'top': newBalancerData = this.main.shift().getRaw(); break;
+        case 'bottom': newBalancerData = this.main.pop().getRaw(); break;
         default: throw new Error('mvb: wrong balancer type');
     }
-    if (!newBalancerItem) {
+    if (!newBalancerData) {
+        // if no main item available - create empty balancer
         this.balancer[type] = new Balancer();
         return;
     }
-    let newViewArea = 0;
-    newViewArea = newBalancerItem.size + COLUMN_PAD - scrollNext;
-    this.balancer[type] = new Balancer(newBalancerItem, newViewArea);
+    const newViewArea = newBalancerData.size + COLUMN_PAD - scrollNext;
+    this.balancer[type] = new Balancer(newBalancerData, newViewArea);
 }
 
 Column.prototype.moveBalancerToMain = function(type, scrollNext) {
-    if (!this.balancer[type].size) return;
+    if (!(this.balancer[type].size && this.source[this.dataDirection].isDataAvailable())) return;
     const oldBalancer = this.balancer[type];
     switch (type) {
-        case 'top': this.unshiftItem(oldBalancer); break;
-        case 'bottom': this.pushItem(oldBalancer); break;
+        case 'top': this.main.unshift(new Item(oldBalancer.getRaw())); break;
+        case 'bottom': this.main.push(new Item(oldBalancer.getRaw())); break;
         default: throw new Error('mbm: wrong balancer type');
     }
     this.balancer[type] = new Balancer(this.getNextItem(), scrollNext);

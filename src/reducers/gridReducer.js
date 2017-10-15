@@ -1,30 +1,12 @@
 import { GRID_DATA_READY } from '../actions/grid';
 import { SCROLL_DOWN, SCROLL_UP } from '../actions/app';
 import Column from '../models/Column';
+import ColumnSource from '../models/ColumnSource';
 import {
     COLUMN_WIDTH,
-    COLUMN_PAD,
     GRID_WIDTH,
     GRID_HEIGHT,
 } from '../constants/grid';
-
-function getColumnSource(queue) {
-    return function* () {
-        let index = 0;
-        let goRight = true;
-
-        while (queue[index]) {
-            const reverse = yield queue[index];
-            if (reverse < 0) throw new Error('reverse lower then Zero');
-            if (reverse) {
-                index = reverse;
-                console.log('reverse: %s, index: %s', reverse, index);
-                goRight = !goRight;
-            }
-            index += goRight ? 1 : -1 ;
-        }
-    }
-}
 
 function getColumnsNumber(gridWidth, columnWidth) {
     return Math.round(gridWidth / columnWidth);
@@ -45,12 +27,20 @@ const initialState = {
     columns: calculateColumns(),
 };
 
-
-
 export default function gridReducer(state = initialState, action) {
     switch (action.type) {
         case GRID_DATA_READY: {
-            return Object.assign({}, state, { columns: state.columns.map(column => new Column(getColumnSource(action.payload)())) });
+            const topData = [];
+            const bottomData = action.payload || [];
+            return Object.assign(
+                {},
+                state,
+                {
+                    topData,
+                    bottomData,
+                    columns: state.columns.map(column => new Column(new ColumnSource({ topData, bottomData }))),
+                },
+            );
         }
         case SCROLL_DOWN: {
             const columns = state.columns.map(column => column.moveDown());
