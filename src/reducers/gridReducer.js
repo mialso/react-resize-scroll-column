@@ -6,10 +6,15 @@ import {
     COLUMN_WIDTH,
     GRID_WIDTH,
     GRID_HEIGHT,
+    GRID_SCROLL_HEIGHT,
 } from '../constants/grid';
 
 function getColumnsNumber(gridWidth, columnWidth) {
     return Math.round(gridWidth / columnWidth);
+}
+
+function isMaxHeight(height) {
+    return height >= window.innerHeight;
 }
 
 function calculateColumns() {
@@ -43,12 +48,50 @@ export default function gridReducer(state = initialState, action) {
             );
         }
         case SCROLL_DOWN: {
-            const columns = state.columns.map(column => column.moveDown());
-            return Object.assign({}, state, { columns });
+            let newState = {};
+            if (isMaxHeight(state.height)) {
+                const columnsAtBottom = state.columns.reduce((acc, col) => col.isAtBottom() ? ++acc : acc, 0);
+                if (columnsAtBottom === state.columns.length) {
+                    console.log('col at bottom');
+                    newState = {
+                        height: state.height - GRID_SCROLL_HEIGHT,
+                        columns: state.columns.map(column => column.resizeBottom(true)),
+                    }
+                } else {
+                    newState = {
+                        columns: state.columns.map(column => column.moveDown()),
+                    };
+                }
+            } else {
+                newState = {
+                    height: state.height + GRID_SCROLL_HEIGHT,
+                    columns: state.columns.map(column => column.resizeTop()),
+                };
+            }
+            return Object.assign({}, state, newState);
         }
         case SCROLL_UP: {
-            const columns = state.columns.map(column => column.moveUp());
-            return Object.assign({}, state, { columns });
+            let newState = {};
+            if (isMaxHeight(state.height)) {
+                const columnsAtTop = state.columns.reduce((acc, col) => col.isAtTop() ? ++acc : acc, 0);
+                if (columnsAtTop === state.columns.length) {
+                    console.log('col at top');
+                    newState = {
+                        height: state.height - GRID_SCROLL_HEIGHT,
+                        columns: state.columns.map(column => column.resizeBottom()),
+                    }
+                } else {
+                    newState = {
+                        columns: state.columns.map(column => column.moveUp()),
+                    };
+                }
+            } else {
+                newState = {
+                    height: state.height - GRID_SCROLL_HEIGHT,
+                    columns: state.columns.map(column => column.resizeBottom()),
+                };
+            }
+            return Object.assign({}, state, newState);
         }
         default: return state;
     }

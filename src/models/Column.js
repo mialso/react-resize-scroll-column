@@ -50,7 +50,28 @@ Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
     this.balancer[type] = new Balancer(dataToAdd, viewArea);
 }
 
-Column.prototype.moveDown = function() {
+Column.prototype.resizeTop = function() {
+    console.log('resizeTop');
+    this.moveDown(GRID_SCROLL_HEIGHT, true);
+    return this;
+}
+
+Column.prototype.resizeBottom = function(reverse = false) {
+    console.log('resizeBottom');
+    const scroll = reverse ? GRID_SCROLL_HEIGHT : -GRID_SCROLL_HEIGHT;
+    reverse ? this.moveUp(scroll, true) : this.moveDown(scroll, true);
+    return this;
+}
+
+Column.prototype.isAtTop = function() {
+    return !this.nextItem && this.balancer.top.isFullView();
+}
+
+Column.prototype.isAtBottom = function() {
+    return !this.nextItem && this.balancer.bottom.isFullView();
+}
+
+Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = false) {
     if (this.dataDirection !== 'bottom') {
         this.dataDirection = 'bottom';
         if (this.nextItem) {
@@ -63,12 +84,12 @@ Column.prototype.moveDown = function() {
         this.nextItem = this.source.bottom.pop();
     }
     // update bottom balancer
-    const scrollTop = this.balancer.bottom.resize(GRID_SCROLL_HEIGHT, !!this.nextItem);
+    const scrollTop = this.balancer.bottom.resize(scroll, !!this.nextItem);
     let scrollNext = this.balancer.bottom.scrollNext;
     if (scrollNext && !!this.nextItem) {
         this.moveBalancerToMain('bottom', scrollNext);
     }
-    if (!scrollTop) return this;
+    if (!scrollTop || noTopUpdate) return this;
     // update top balancer
     this.balancer.top.resize(-scrollTop);
     scrollNext = this.balancer.top.scrollNext;
@@ -79,7 +100,7 @@ Column.prototype.moveDown = function() {
     return this;
 };
 
-Column.prototype.moveUp = function() {
+Column.prototype.moveUp = function(scroll = GRID_SCROLL_HEIGHT, noBottomUpdate = false) {
     if (this.dataDirection !== 'top') {
         this.dataDirection = 'top';
         if (this.nextItem) {
@@ -93,12 +114,12 @@ Column.prototype.moveUp = function() {
         this.nextItem = this.source.top.pop();
     }
     // update top balancer
-    const scrollBottom = this.balancer.top.resize(GRID_SCROLL_HEIGHT, !!this.nextItem);
+    const scrollBottom = this.balancer.top.resize(scroll, !!this.nextItem);
     let scrollNext = this.balancer.top.scrollNext;
     if (scrollNext && !!this.nextItem) {
         this.moveBalancerToMain('top', scrollNext);
     }
-    if (!scrollBottom) return this;
+    if (!scrollBottom || noBottomUpdate) return this;
     // update bottom balancer
     this.balancer.bottom.resize(-scrollBottom);
     scrollNext = this.balancer.bottom.scrollNext;

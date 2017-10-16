@@ -28,6 +28,7 @@ class App extends Component {
         const { width, height, columns } = this.props;
         return (
             <div className="App">
+                <div style={{ height: window.innerHeight - height }}>TOP</div>
                 <Grid {...{ width, height, columns }}/>
             </div>
         );

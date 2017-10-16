@@ -40,6 +40,10 @@ Balancer.prototype.isScrollable = function(scrollSize) {
     const newViewArea = this.viewArea + scrollSize;
     return newViewArea > 0 && newViewArea < this.size + COLUMN_PAD;
 }
+
+Balancer.prototype.isFullView = function() {
+    return this.size === this.viewArea;
+}
 /*
 Balancer.prototype.isScrollable = function(scrollSize) {
     return this.viewArea > scrollSize;
