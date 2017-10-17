@@ -10,12 +10,13 @@ export default function Column(dataSource) {
     this.main = [];
     this.switchDataDirection = false;
     this.dataDirection = 'bottom';
-    this.balancer = {};
-    this.addBalancer({ type: 'top' });
+    this.balancer = {
+        top: new Balancer(this.getNextItem('bottom')),
+    };
     this.nextItem = null;
 
     while (this.getArea() < GRID_HEIGHT) {
-        const itemData = this.getNextItem();
+        const itemData = this.getNextItem('bottom');
         if ((itemData.size + this.getArea() + COLUMN_PAD) < GRID_HEIGHT) {
             this.main.push(new Item(itemData));
         } else {
@@ -28,13 +29,13 @@ export default function Column(dataSource) {
     this.version = 0;
 }
 
-Column.prototype.getNextItem = function() {
+Column.prototype.getNextItem = function(direction) {
     let nextItem;
     if (this.nextItem) {
         nextItem = this.nextItem;
         this.nextItem = null;
     } else {
-        nextItem = this.source[this.dataDirection].pop();
+        nextItem = this.source[direction].pop();
     }
     return nextItem;
 }
@@ -46,7 +47,7 @@ Column.prototype.pushBackToSource = function(type) {
 }
 
 Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
-    const dataToAdd = itemData || this.getNextItem();
+    const dataToAdd = itemData || this.getNextItem(type);
     this.balancer[type] = new Balancer(dataToAdd, viewArea);
 }
 
@@ -104,7 +105,11 @@ Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = 
     scrollNext = this.balancer.top.scrollNext;
     if (scrollNext) {
         // move main to balancer
-        this.moveMainToBalancer('top', scrollNext);
+        if (scroll > 0) {
+            this.moveMainToBalancer('top', scrollNext);
+        } else {
+            this.moveBalancerToMain('top', scrollNext);
+        }
     }
     return this;
 };
@@ -163,12 +168,14 @@ Column.prototype.moveMainToBalancer = function(type, scrollNext) {
 
 Column.prototype.moveBalancerToMain = function(type, scrollNext) {
     const oldBalancer = this.balancer[type];
+    // push balancer to main
     switch (type) {
         case 'top': this.main.unshift(new Item(oldBalancer.getRaw())); break;
         case 'bottom': this.main.push(new Item(oldBalancer.getRaw())); break;
         default: throw new Error('mbm: wrong balancer type');
     }
-    this.balancer[type] = new Balancer(this.getNextItem(), scrollNext);
+    // get new balancer from source
+    this.balancer[type] = new Balancer(this.getNextItem(type), scrollNext);
 };
 
 Column.prototype.getArea = function() {
