@@ -60,7 +60,7 @@ Column.prototype.resizeBottom = function(reverse = false, reverseScroll = false)
     console.log('resizeBottom');
     let scroll = reverse ? GRID_SCROLL_HEIGHT : -GRID_SCROLL_HEIGHT;
     scroll = reverseScroll ? -scroll : scroll;
-    reverse ? this.moveUp(-scroll, true) : this.moveDown(scroll, true);
+    reverse ? this.moveDown(scroll, true, true) : this.moveDown(scroll, true);
     return this;
 }
 
@@ -72,7 +72,7 @@ Column.prototype.isAtBottom = function() {
     return !this.nextItem && this.balancer.bottom.isFullView();
 }
 
-Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = false) {
+Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = false, botUpdate = false) {
     if (this.dataDirection !== 'bottom') {
         this.dataDirection = 'bottom';
         if (this.nextItem) {
@@ -84,17 +84,21 @@ Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = 
     if (!this.nextItem && this.source.bottom.isDataAvailable()) {
         this.nextItem = this.source.bottom.pop();
     }
+    let scrollTop = scroll;
+    let scrollNext;
     // update bottom balancer
-    const scrollTop = this.balancer.bottom.resize(scroll, !!this.nextItem);
-    let scrollNext = this.balancer.bottom.scrollNext;
-    if (scrollNext && !!this.nextItem) {
-        if (scroll > 0 ) {
-            this.moveBalancerToMain('bottom', scrollNext);
-        } else {
-            this.moveMainToBalancer('bottom', scrollNext);
+    if (!botUpdate) {
+        scrollTop = this.balancer.bottom.resize(scroll, !!this.nextItem);
+        scrollNext = this.balancer.bottom.scrollNext;
+        if (scrollNext && !!this.nextItem) {
+            if (scroll > 0 ) {
+                this.moveBalancerToMain('bottom', scrollNext);
+            } else {
+                this.moveMainToBalancer('bottom', scrollNext);
+            }
         }
     }
-    if (!scrollTop || noTopUpdate) return this;
+    if (!botUpdate && (!scrollTop || noTopUpdate)) return this;
     // update top balancer
     this.balancer.top.resize(-scrollTop);
     scrollNext = this.balancer.top.scrollNext;

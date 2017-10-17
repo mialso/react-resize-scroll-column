@@ -56,22 +56,23 @@ export default function gridReducer(state = initialState, action) {
         case SCROLL_DOWN: {
             let newState = {};
             if (isMaxHeight(state.height)) {
-                console.log('maxHeight');
+                console.log('DOWN: maxHeight');
                 const columnsAtBottom = state.columns.reduce((acc, col) => col.isAtBottom() ? ++acc : acc, 0);
                 if (columnsAtBottom === state.columns.length) {
-                    console.log('col at bottom');
+                    console.log('DOWN: col at bottom');
                     newState = {
                         columnHeight: state.columnHeight - GRID_SCROLL_HEIGHT,
                         columns: state.columns.map(column => column.resizeBottom(true)),
                     }
                 } else {
-                    console.log('col not at bottom');
+                    console.log('DOWN: col not at bottom');
                     newState = {
                         //columnHeight: state.columnHeight + GRID_SCROLL_HEIGHT,
                         columns: state.columns.map(column => column.moveDown()),
                     };
                 }
             } else {
+                console.log('DOWN: not maxHeight');
                 newState = {
                     height: state.height + GRID_SCROLL_HEIGHT,
                     columnHeight: state.height + GRID_SCROLL_HEIGHT,
@@ -84,9 +85,10 @@ export default function gridReducer(state = initialState, action) {
         case SCROLL_UP: {
             let newState = {};
             if (isMaxHeight(state.height)) {
+                console.log('UP: maxHeight');
                 const columnsAtTop = state.columns.reduce((acc, col) => col.isAtTop() ? ++acc : acc, 0);
                 if (columnsAtTop === state.columns.length) {
-                    console.log('col at top');
+                    console.log('UP: col at top');
                     newState = {
                         height: state.height - GRID_SCROLL_HEIGHT,
                         columnHeight: state.columnHeight - GRID_SCROLL_HEIGHT,
@@ -94,22 +96,25 @@ export default function gridReducer(state = initialState, action) {
                     }
                 } else {
                     if (state.columnHeight < state.height) {
+                        console.log('UP: col not at top: column less grid');
                         newState = {
                             columnHeight: state.columnHeight + GRID_SCROLL_HEIGHT,
                             columns: state.columns.map(column => column.resizeBottom(true, true)),
                         };
                     } else {
+                        console.log('UP: col not at top: column eq grid');
                         newState = {
                             columns: state.columns.map(column => column.moveUp()),
                         };
                     }
                 }
             } else if (isMinHeight(state)) {
-                console.log('minHeight');
+                console.log('UP: minHeight');
                 newState = {
                     columns: state.columns.map(column => column.moveUp()),
                 };
             } else {
+                console.log('UP: else');
                 newState = {
                     height: state.height - GRID_SCROLL_HEIGHT,
                     columnHeight: state.columnHeight - GRID_SCROLL_HEIGHT,
