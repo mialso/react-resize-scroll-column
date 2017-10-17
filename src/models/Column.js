@@ -3,18 +3,29 @@ import {
     GRID_SCROLL_HEIGHT,
     COLUMN_PAD,
 } from '../constants/grid';
-import { Item, Balancer } from './Balancer';
+import { Item, TopBalancer, BottomBalancer } from './Balancer';
+import { TopSource, BottomSource } from './Source';
 
-export default function Column(dataSource) {
-    this.source = dataSource;
-    this.main = [];
-    this.switchDataDirection = false;
-    this.dataDirection = 'bottom';
+export default function Column({ topSource, bottomSource }) {
+    //this.source = dataSource;
+    this._main = [];
+    //this.switchDataDirection = false;
+    //this.dataDirection = 'bottom';
+
+    // create empty balancers
     this.balancer = {
-        top: new Balancer(this.getNextItem('bottom')),
+        top: new TopBalancer({
+            topSource,
+            bottomSource: new BottomSource(this._main),
+        }),
+        bottom: new BottomBalancer({
+            topSource: new TopSource(this._main),
+            bottomSource,
+        }),
     };
-    this.nextItem = null;
+    //this.nextItem = null;
 
+    /*
     while (this.getArea() < GRID_HEIGHT) {
         const itemData = this.getNextItem('bottom');
         if ((itemData.size + this.getArea() + COLUMN_PAD) < GRID_HEIGHT) {
@@ -25,10 +36,10 @@ export default function Column(dataSource) {
             break;
         }
     }
-
-    this.version = 0;
+    */
 }
 
+/*
 Column.prototype.getNextItem = function(direction) {
     let nextItem;
     if (this.nextItem) {
@@ -50,6 +61,7 @@ Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
     const dataToAdd = itemData || this.getNextItem(type);
     this.balancer[type] = new Balancer(dataToAdd, viewArea);
 }
+*/
 
 Column.prototype.resizeTop = function() {
     console.log('resizeTop');

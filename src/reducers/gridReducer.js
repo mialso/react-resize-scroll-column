@@ -1,7 +1,7 @@
 import { GRID_DATA_READY } from '../actions/grid';
 import { SCROLL_DOWN, SCROLL_UP } from '../actions/app';
 import Column from '../models/Column';
-import ColumnSource from '../models/ColumnSource';
+import { TopSource, BottomSource } from '../models/Source';
 import {
     COLUMN_WIDTH,
     GRID_WIDTH,
@@ -49,7 +49,10 @@ export default function gridReducer(state = initialState, action) {
                 {
                     topData,
                     bottomData,
-                    columns: state.columns.map(column => new Column(new ColumnSource({ topData, bottomData }))),
+                    columns: state.columns.map(column => new Column({
+                        topSource: new TopSource(topData),
+                        bottomSource: new BottomSource(bottomData),
+                    })),
                 },
             );
         }

@@ -23,13 +23,32 @@ Item.prototype.getRaw = function() {
     return this._raw;
 }
 
-export function Balancer(itemData, viewArea) {
-    Item.call(this, itemData);
-    this.viewArea = viewArea ? viewArea : this.size;
+export function Balancer({initViewArea, topSource, bottomSource }) {
+    // inherit from item with default data
+    Item.call(this);
+    this.viewArea = initViewArea ? initViewArea : this.size;
+    this.source = {
+        top: topSource,
+        bottom: bottomSource,
+    };
 }
 
 Balancer.prototype = Object.create(Item.prototype);
 Balancer.prototype.constructor = Balancer;
+
+export function TopBalancer({ initViewArea, topSource, bottomSource }) {
+    Balancer.call(this, arguments[0]);
+}
+
+TopBalancer.prototype = Object.create(Balancer.prototype);
+TopBalancer.prototype.constructor = TopBalancer;
+
+export function BottomBalancer({ initViewArea, topSource, bottomSource }) {
+    Balancer.call(this, arguments[0]);
+}
+
+BottomBalancer.prototype = Object.create(Balancer.prototype);
+BottomBalancer.prototype.constructor = BottomBalancer;
 
 Balancer.prototype.getSize = function() {
     return this.viewArea < this.size ? this.viewArea : this.size;

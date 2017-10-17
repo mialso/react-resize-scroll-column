@@ -1,3 +1,36 @@
+function Source(dataArray) {
+    this._data = dataArray;
+}
+
+Source.prototype.push = function(item) {
+    this._data.push(item);
+    this._data.sort((a, b) => a.index - b.index)
+}
+
+Source.prototype.isDataAvailable = function() {
+    return this.data.length > 0;
+}
+export function TopSource(dataArray) {
+    Source.call(this, dataArray);
+}
+
+TopSource.prototype = Object.create(Source.prototype);
+TopSource.prototype.constructor = TopSource;
+
+TopSource.prototype.get = function() {
+    return this.data.pop();
+}
+
+export function BottomSource(dataArray) {
+    Source.call(this, dataArray);
+}
+
+BottomSource.prototype = Object.create(Source.prototype);
+BottomSource.prototype.constructor = BottomSource;
+
+BottomSource.prototype.get = function() {
+    return this._data.shift();
+}
 /*
 function getGridSource(source, columns) {
     const bottomBuffer = source.slice();
@@ -29,35 +62,6 @@ function* getColumnBuffer(source) {
     }
 }
 */
-
-export default function ColumnSource({ topData, bottomData }) {
-    this.top = {
-        data: topData,
-        pop() {
-            return this.data.pop();
-        },
-        push(item) {
-            this.data.push(item);
-            this.data.sort((a, b) => a.index - b.index)
-        },
-        isDataAvailable() {
-            return this.data.length > 0;
-        }
-    };
-    this.bottom = {
-        data: bottomData,
-        pop() {
-            return this.data.shift();
-        },
-        push(item) {
-            this.data.unshift(item);
-            this.data.sort((a, b) => a.index - b.index)
-        },
-        isDataAvailable() {
-            return this.data.length > 0;
-        }
-    };
-}
 
 /*
 function* getColumnSource(queue) {
