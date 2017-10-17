@@ -17,6 +17,10 @@ function isMaxHeight(height) {
     return height >= window.innerHeight;
 }
 
+function isMinHeight(state) {
+    return state.height < state.minHeight;
+}
+
 function calculateColumns() {
     const columnsNumber = getColumnsNumber(GRID_WIDTH, COLUMN_WIDTH);
     const columns = [];
@@ -30,6 +34,8 @@ const initialState = {
     width: GRID_WIDTH,
     height: GRID_HEIGHT,
     columns: calculateColumns(),
+    minHeight: GRID_HEIGHT,
+    columnHeight: GRID_HEIGHT,
 };
 
 export default function gridReducer(state = initialState, action) {
@@ -50,24 +56,29 @@ export default function gridReducer(state = initialState, action) {
         case SCROLL_DOWN: {
             let newState = {};
             if (isMaxHeight(state.height)) {
+                console.log('maxHeight');
                 const columnsAtBottom = state.columns.reduce((acc, col) => col.isAtBottom() ? ++acc : acc, 0);
                 if (columnsAtBottom === state.columns.length) {
                     console.log('col at bottom');
                     newState = {
-                        height: state.height - GRID_SCROLL_HEIGHT,
+                        columnHeight: state.columnHeight - GRID_SCROLL_HEIGHT,
                         columns: state.columns.map(column => column.resizeBottom(true)),
                     }
                 } else {
+                    console.log('col not at bottom');
                     newState = {
+                        //columnHeight: state.columnHeight + GRID_SCROLL_HEIGHT,
                         columns: state.columns.map(column => column.moveDown()),
                     };
                 }
             } else {
                 newState = {
                     height: state.height + GRID_SCROLL_HEIGHT,
+                    columnHeight: state.height + GRID_SCROLL_HEIGHT,
                     columns: state.columns.map(column => column.resizeTop()),
                 };
             }
+
             return Object.assign({}, state, newState);
         }
         case SCROLL_UP: {
@@ -78,16 +89,30 @@ export default function gridReducer(state = initialState, action) {
                     console.log('col at top');
                     newState = {
                         height: state.height - GRID_SCROLL_HEIGHT,
+                        columnHeight: state.columnHeight - GRID_SCROLL_HEIGHT,
                         columns: state.columns.map(column => column.resizeBottom()),
                     }
                 } else {
-                    newState = {
-                        columns: state.columns.map(column => column.moveUp()),
-                    };
+                    if (state.columnHeight < state.height) {
+                        newState = {
+                            columnHeight: state.columnHeight + GRID_SCROLL_HEIGHT,
+                            columns: state.columns.map(column => column.resizeBottom(true, true)),
+                        };
+                    } else {
+                        newState = {
+                            columns: state.columns.map(column => column.moveUp()),
+                        };
+                    }
                 }
+            } else if (isMinHeight(state)) {
+                console.log('minHeight');
+                newState = {
+                    columns: state.columns.map(column => column.moveUp()),
+                };
             } else {
                 newState = {
                     height: state.height - GRID_SCROLL_HEIGHT,
+                    columnHeight: state.columnHeight - GRID_SCROLL_HEIGHT,
                     columns: state.columns.map(column => column.resizeBottom()),
                 };
             }

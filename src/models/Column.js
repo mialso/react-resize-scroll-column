@@ -56,10 +56,11 @@ Column.prototype.resizeTop = function() {
     return this;
 }
 
-Column.prototype.resizeBottom = function(reverse = false) {
+Column.prototype.resizeBottom = function(reverse = false, reverseScroll = false) {
     console.log('resizeBottom');
-    const scroll = reverse ? GRID_SCROLL_HEIGHT : -GRID_SCROLL_HEIGHT;
-    reverse ? this.moveUp(scroll, true) : this.moveDown(scroll, true);
+    let scroll = reverse ? GRID_SCROLL_HEIGHT : -GRID_SCROLL_HEIGHT;
+    scroll = reverseScroll ? -scroll : scroll;
+    reverse ? this.moveUp(-scroll, true) : this.moveDown(scroll, true);
     return this;
 }
 
@@ -87,7 +88,11 @@ Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = 
     const scrollTop = this.balancer.bottom.resize(scroll, !!this.nextItem);
     let scrollNext = this.balancer.bottom.scrollNext;
     if (scrollNext && !!this.nextItem) {
-        this.moveBalancerToMain('bottom', scrollNext);
+        if (scroll > 0 ) {
+            this.moveBalancerToMain('bottom', scrollNext);
+        } else {
+            this.moveMainToBalancer('bottom', scrollNext);
+        }
     }
     if (!scrollTop || noTopUpdate) return this;
     // update top balancer
@@ -117,7 +122,11 @@ Column.prototype.moveUp = function(scroll = GRID_SCROLL_HEIGHT, noBottomUpdate =
     const scrollBottom = this.balancer.top.resize(scroll, !!this.nextItem);
     let scrollNext = this.balancer.top.scrollNext;
     if (scrollNext && !!this.nextItem) {
-        this.moveBalancerToMain('top', scrollNext);
+        if (scroll > 0) {
+            this.moveBalancerToMain('top', scrollNext);
+        } else {
+            this.moveMainToBalancer('top', scrollNext);
+        }
     }
     if (!scrollBottom || noBottomUpdate) return this;
     // update bottom balancer

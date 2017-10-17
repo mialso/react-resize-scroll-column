@@ -37,17 +37,8 @@ export default function ColumnSource({ topData, bottomData }) {
             return this.data.pop();
         },
         push(item) {
-            console.log('top push: %s', item.index);
             this.data.push(item);
             this.data.sort((a, b) => a.index - b.index)
-            /*
-            for (let i = this.data.length - 1; i >= 0; --i) {
-                if (this.data[i].index < item.index) {
-                    this.data.splice(i, 0, item);
-                }
-            }
-            */
-            console.log('topArr = %s', JSON.stringify(this.data.map(i => i.index)));
         },
         isDataAvailable() {
             return this.data.length > 0;
@@ -59,18 +50,8 @@ export default function ColumnSource({ topData, bottomData }) {
             return this.data.shift();
         },
         push(item) {
-            console.log('bottom push: %s', item.index);
             this.data.unshift(item);
             this.data.sort((a, b) => a.index - b.index)
-            /*
-            for (let i = 0; i < this.data.length; ++i) {
-                if (this.data[i].index > item.index) {
-                    this.data.splice(i, 0, item);
-                }
-            }
-            */
-            console.log('botArr = %s', JSON.stringify(this.data.map(i => i.index)));
-            //this.data[item.index] = item;
         },
         isDataAvailable() {
             return this.data.length > 0;

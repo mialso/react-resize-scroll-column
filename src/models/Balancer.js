@@ -26,7 +26,6 @@ Item.prototype.getRaw = function() {
 export function Balancer(itemData, viewArea) {
     Item.call(this, itemData);
     this.viewArea = viewArea ? viewArea : this.size;
-    console.log('new balancer: %o', this);
 }
 
 Balancer.prototype = Object.create(Item.prototype);
@@ -44,11 +43,7 @@ Balancer.prototype.isScrollable = function(scrollSize) {
 Balancer.prototype.isFullView = function() {
     return this.size === this.viewArea;
 }
-/*
-Balancer.prototype.isScrollable = function(scrollSize) {
-    return this.viewArea > scrollSize;
-}
-*/
+
 Balancer.prototype.resize = function(size, doScroll = true) {
     if (!this.size) return;
     const newViewArea = this.viewArea + size;

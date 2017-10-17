@@ -25,11 +25,11 @@ class App extends Component {
         }
     }
     render() {
-        const { width, height, columns } = this.props;
+        const { width, height, columns, columnHeight } = this.props;
         return (
             <div className="App">
                 <div style={{ height: window.innerHeight - height }}>TOP</div>
-                <Grid {...{ width, height, columns }}/>
+                <Grid {...{ width, height, columns, columnHeight, minHeight: height }}/>
             </div>
         );
     }
@@ -41,6 +41,7 @@ const mapStateToProps = ({ items, grid }) => {
         width: grid.width,
         height: grid.height,
         columns: grid.columns,
+        columnHeight: grid.columnHeight,
     };
 };
 
