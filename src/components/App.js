@@ -40,6 +40,7 @@ class App extends Component {
         if (this.props.isGridScrollableUp) {
             console.log('scroll up handler: grid is scrollable');
             // scroll grid
+            this.props.gridScrollDown(SCROLL_SPEED);
         } else {
             // resize top
             const { topHeight, maxTopHeight } = this.state;

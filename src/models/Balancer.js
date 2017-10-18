@@ -25,7 +25,7 @@ Item.prototype.getRaw = function() {
     return this._raw;
 }
 
-export function Balancer({ itemData, initViewArea, topSource, bottomSource, margin }) {
+export function Balancer({ itemData, initViewArea, topSource, bottomSource, margin, version }) {
     // inherit from item with default data in case no itemData provided
     Item.call(this, itemData);
     this.viewArea = initViewArea ? initViewArea : 0;
@@ -34,7 +34,7 @@ export function Balancer({ itemData, initViewArea, topSource, bottomSource, marg
         bottom: bottomSource,
     };
     this.margin = margin || 0;
-    this.version = 0;
+    this.version = version || 0;
 }
 
 Balancer.prototype = Object.create(Item.prototype);
@@ -46,6 +46,26 @@ export function TopBalancer({ itemData, initViewArea, topSource, bottomSource })
 
 TopBalancer.prototype = Object.create(Balancer.prototype);
 TopBalancer.prototype.constructor = TopBalancer;
+TopBalancer.prototype.isShrinkDataAvailable = function() {
+    return this.source.bottom.isDataAvailable();
+}
+TopBalancer.prototype.isExpandDataAvailable = function() {
+    return this.source.top.isDataAvailable();
+}
+TopBalancer.prototype.updateFromMain = function() {
+    this.size && this.source.top.push(new Item(this.getRaw()));
+    const nextItem = this.source.bottom.get();
+    this.update({
+        itemData: nextItem,
+        initViewArea: nextItem && nextItem.size,
+        margin: COLUMN_PAD,
+    });
+}
+TopBalancer.prototype.updateFromData = function() {
+    this.size && this.source.bottom.push(new Item(this.getRaw()));
+    const nextItem = this.source.top.get();
+    this.update({ itemData: nextItem });
+}
 
 export function BottomBalancer({ itemData, initViewArea, topSource, bottomSource }) {
     Balancer.call(this, arguments[0]);
@@ -53,6 +73,26 @@ export function BottomBalancer({ itemData, initViewArea, topSource, bottomSource
 
 BottomBalancer.prototype = Object.create(Balancer.prototype);
 BottomBalancer.prototype.constructor = BottomBalancer;
+BottomBalancer.prototype.isShrinkDataAvailable = function() {
+    return this.source.top.isDataAvailable();
+}
+BottomBalancer.prototype.isExpandDataAvailable = function() {
+    return this.source.bottom.isDataAvailable();
+}
+BottomBalancer.prototype.updateFromMain = function() {
+    this.size && this.source.bottom.push(new Item(this.getRaw()));
+    const nextItem = this.source.top.get();
+    this.update({
+        itemData: nextItem,
+        initViewArea: nextItem && nextItem.size,
+        margin: COLUMN_PAD,
+    });
+}
+BottomBalancer.prototype.updateFromData = function() {
+    this.size && this.source.top.push(new Item(this.getRaw()));
+    const nextItem = this.source.bottom.get();
+    this.update({ itemData: nextItem });
+}
 
 /*
 BottomBalancer.prototype.isResizable = function() {
@@ -76,7 +116,7 @@ Balancer.prototype.isFullView = function() {
 
 Balancer.prototype.shrink = function(size) {
     if (!size || size < 0) throw new Error(`Balancer: resizeDown(): no size or lower then 0: ${size}`);
-    if (this.source.top.isDataAvailable()) {
+    if (this.isShrinkDataAvailable()) {
         // we have more data to pull from source
         const viewResizeAvailable = this.viewArea + this.margin;
         if (viewResizeAvailable) {
@@ -94,7 +134,12 @@ Balancer.prototype.shrink = function(size) {
             }
             // shrink viewArea
             this.viewArea -= toResize;
+            if (this.viewArea === 0) {
+                this.updateFromMain();
+            }
         } else {
+            this.updateFromMain();
+            /*
             // pull next item from source
             const nextItem = this.source.top.get();
             if (!nextItem) {
@@ -106,6 +151,7 @@ Balancer.prototype.shrink = function(size) {
             this.size && this.source.bottom.push(new Item(this.getRaw()));
             // update this balancer with full item view
             this.update({ itemData: nextItem, initViewArea: nextItem.size, margin: COLUMN_PAD });
+            */
         }
     } else {
         // no more data available - resize any amount we have
@@ -122,17 +168,19 @@ Balancer.prototype.shrink = function(size) {
 Balancer.prototype.expand = function(size) {
     if (!size || size < 0) throw new Error(`Balancer: resizeDown(): no size or lower then 0: ${size}`);
 
-    if (this.source.bottom.isDataAvailable()) {
+    if (this.isExpandDataAvailable()) {
         // we have more data to pull from source
         const viewResizeAvailable = this.size - this.viewArea;
         if (viewResizeAvailable) {
             // expand item view
             const toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
             this.viewArea += toResize;
-        } else if (size < (COLUMN_PAD - this.margin) && this.source.bottom.isDataAvailable()) {
+        } else if (size <= (COLUMN_PAD - this.margin) && this.source.bottom.isDataAvailable()) {
             // expand item margin
             this.margin += size;
         } else {
+            this.updateFromData();
+            /*
             // pull next item from source
             const nextItem = this.source.bottom.get();
             if (!nextItem) {
@@ -144,6 +192,7 @@ Balancer.prototype.expand = function(size) {
             this.size && this.source.top.push(new Item(this.getRaw()));
             // update this balancer
             this.update({ itemData: nextItem });
+            */
         }
     } else {
         // no more data available - resize any amount we have
@@ -156,12 +205,14 @@ Balancer.prototype.expand = function(size) {
     this.version += 1;
 }
 
-Balancer.prototype.update = function({ itemData, initViewArea }) {
+Balancer.prototype.update = function({ itemData, initViewArea, margin }) {
     Balancer.call(
         this, 
         {
             initViewArea,
             itemData,
+            margin,
+            version: this.version,
             topSource: this.source.top,
             bottomSource: this.source.bottom,
         },

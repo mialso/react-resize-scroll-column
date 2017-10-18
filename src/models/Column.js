@@ -48,7 +48,10 @@ Column.prototype.resize = function(balancer, newSize) {
     console.log('column: resize: new Size: %s', newSize);
     let counter = 0;
     while (this.getArea() !== newSize) {
-        if (++counter > 100) debugger;//throw new Error('counter');
+        if (++counter > 40) {
+            debugger;
+        }
+        if (counter > 50) throw new Error('counter');
         // get resize amount
         const toResize = newSize - this.getArea();
         // choose either expand or shrink
@@ -62,20 +65,25 @@ Column.prototype.resize = function(balancer, newSize) {
 }
 
 Column.prototype.resizeTop = function(newSize) {
+    if (this.balancer.top.type === 'empty') this.balancer.top.updateFromMain();
     return this.resize(this.balancer.top, newSize);
 }
 
 Column.prototype.resizeBottom = function(newSize) {
+    if (this.balancer.bottom.type === 'empty') this.balancer.bottom.updateFromMain();
     return this.resize(this.balancer.bottom, newSize);
 }
 
 Column.prototype.scrollUp = function(size) {
     console.log('Column: scrollUp: size: %s', size);
-    return this;
+    const currentArea = this.getArea();
+    return this.resizeTop(currentArea - size).resizeBottom(currentArea);
 }
 
 Column.prototype.scrollDown = function(size) {
     console.log('Column: scrollDown: size: %s', size);
+    const currentArea = this.getArea();
+    return this.resizeTop(currentArea + size).resizeBottom(currentArea);
     return this;
 }
 

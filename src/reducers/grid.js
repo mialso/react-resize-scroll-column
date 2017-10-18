@@ -71,11 +71,20 @@ export default function gridReducer(state = initialState, action) {
             if (!action.payload) return state;
             const scrollSize = Number.parseInt(action.payload, 10);
             if (Number.isInteger(scrollSize)) {
-                
+                return Object.assign({}, state, {
+                    column: state.column.scrollDown(scrollSize),
+                });
             }
             return state;
         }
         case GRID_SCROLL_UP: {
+            if (!action.payload) return state;
+            const scrollSize = Number.parseInt(action.payload, 10);
+            if (Number.isInteger(scrollSize)) {
+                return Object.assign({}, state, {
+                    column: state.column.scrollUp(scrollSize),
+                });
+            }
             return state;
         }
         default: return state;

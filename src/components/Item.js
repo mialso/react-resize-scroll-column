@@ -36,7 +36,7 @@ export class BalancerItem extends React.Component {
             display: data.getSize() > 0 ? 'block' : 'none',
         };
         const childStyle = {
-            marginTop: type === 'top' ? data.viewArea - data.size : 0,
+            //marginTop: type === 'top' ? data.viewArea - data.size : 0,
             overflow: type === 'bottom' ? 'hidden' : 'visible',
         };
         return (
