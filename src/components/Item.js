@@ -5,15 +5,15 @@ import './Item.css';
 function Card({ data, childStyle }) {
     return (
         <div className="Card" style={childStyle}>
-            <p style={{ height: data.size / 2 }}>n: { data.data.text }</p>
-            <p style={{ height: data.size / 2 }}>s: {data.size} -> vA: {data.viewArea}</p>
+            <p style={{ height: data.size }}>s: {data.size} -> vA: {data.viewArea}</p>
         </div>
     );
 }
 
-export function Item({ data }) {
+export function Item({ data, applyStyle }) {
+    const style = Object.assign({}, applyStyle, { height: data.getSize() });
     return (
-        <div className="Item" style={{ height: data.getSize() }}>
+        <div className="Item" style={style}>
             <Card data={data} />
         </div>
     );
@@ -31,7 +31,12 @@ export function BalancerItem({ data, type, children }) {
     };
     return (
         <div className="BalancerItem" style={style}>
-            { children }
+            {
+                React.Children.map(
+                    children,
+                    child => React.cloneElement(child, { applyStyle: childStyle, data }),
+                )
+            }
         </div>
     );
 }

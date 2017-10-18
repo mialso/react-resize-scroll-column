@@ -33,6 +33,7 @@ export function Balancer({ itemData, initViewArea, topSource, bottomSource }) {
         top: topSource,
         bottom: bottomSource,
     };
+    this.margin = 0;
 }
 
 Balancer.prototype = Object.create(Item.prototype);
@@ -52,8 +53,15 @@ export function BottomBalancer({ itemData, initViewArea, topSource, bottomSource
 BottomBalancer.prototype = Object.create(Balancer.prototype);
 BottomBalancer.prototype.constructor = BottomBalancer;
 
+/*
+BottomBalancer.prototype.isResizable = function() {
+    // if no more data available, resizable only if has area to expand
+    return this.source.bottom.isDataAvailable() || this.viewArea < this.size;
+}
+*/
+
 Balancer.prototype.getSize = function() {
-    return this.viewArea < this.size ? this.viewArea : this.size;
+    return this.viewArea + this.margin;
 }
 
 Balancer.prototype.isScrollable = function(scrollSize) {
@@ -69,39 +77,43 @@ Balancer.prototype.shrink = function(size) {
     if (!size || size < 0) throw new Error(`Balancer: resizeDown(): no size or lower then 0: ${size}`);
     if (this.source.top.isDataAvailable()) {
         // we have more data to pull from source
-        let sizeLeft = size;
-        while (sizeLeft > 0) {
-            const viewResizeAvailable = this.viewArea + this.margin;
-            if (viewResizeAvailable) {
-                // shrink item view
-                let toResize = viewResizeAvailable > sizeLeft ? sizeLeft : viewResizeAvailable;
-                if (this.margin > 0) {
-                    // shrink margin
-                    if (this.margin > toResize) {
-                        toResize = 0;
-                        this.margin -= toResize;
-                    } else {
-                        toResize -= this.margin;
-                    }
+        const viewResizeAvailable = this.viewArea + this.margin;
+        if (viewResizeAvailable) {
+            // shrink item view
+            let toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
+            if (this.margin > 0) {
+                // shrink margin
+                if (this.margin > toResize) {
+                    toResize = 0;
+                    this.margin -= toResize;
+                } else {
+                    toResize -= this.margin;
                 }
-                // shrink viewArea
-                this.viewArea -= toResize;
-                sizeLeft -= toResize;
-            } else {
-                // pull next item from source
-                const nextItem = this.source.top.get();
-                if (!nextItem) {
-                    // no more data - nothing to do
-                    break;
-                }
-
-                // push this item back to source
-                this.source.bottom.push(this.getRaw());
-                // update this balancer with full item view
-                this.update({ itemData: nextItem, initViewArea: nextItem.size });
             }
+            // shrink viewArea
+            this.viewArea -= toResize;
+        } else {
+            // pull next item from source
+            const nextItem = this.source.top.get();
+            if (!nextItem) {
+                // no more data - nothing to do
+                return;
+            }
+
+            // push this item back to source
+            this.size && this.source.bottom.push(new Item(this.getRaw()));
+            // update this balancer with full item view
+            this.update({ itemData: nextItem, initViewArea: nextItem.size });
         }
-    }
+    } else {
+        // no more data available - resize any amount we have
+        const viewResizeAvailable = this.viewArea;
+        if (viewResizeAvailable > 0) {
+            // shrink all available size or just current viewArea
+            const toResize = viewResizeAvailable >= size ? size : viewResizeAvailable;
+            this.viewArea -= toResize;
+        }
+    } 
 }
 
 Balancer.prototype.expand = function(size) {
@@ -109,37 +121,32 @@ Balancer.prototype.expand = function(size) {
 
     if (this.source.bottom.isDataAvailable()) {
         // we have more data to pull from source
-        let sizeLeft = size;
-        while (sizeLeft > 0) {
-            const viewResizeAvailable = this.size - this.viewArea;
-            if (viewResizeAvailable) {
-                // expand item view
-                const toResize = viewResizeAvailable > sizeLeft ? sizeLeft : viewResizeAvailable;
-                this.viewArea += toResize;
-                sizeLeft -= toResize;
-            } else if (sizeLeft < COLUMN_PAD && this.source.bottom.isDataAvailable()) {
-                // expand item margin
-                this.margin = sizeLeft;
-                sizeLeft = 0;
-            } else {
-                // pull next item from source
-                const nextItem = this.source.bottom.get();
-                if (!nextItem) {
-                    // no more data - nothing to do
-                    break;
-                }
-
-                // push this item to source
-                this.source.top.push(this.getRaw());
-                // update this balancer
-                this.update({ itemData: nextItem });
+        const viewResizeAvailable = this.size - this.viewArea;
+        if (viewResizeAvailable) {
+            // expand item view
+            const toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
+            this.viewArea += toResize;
+        } else if (size < (COLUMN_PAD - this.margin) && this.source.bottom.isDataAvailable()) {
+            // expand item margin
+            this.margin += size;
+        } else {
+            // pull next item from source
+            const nextItem = this.source.bottom.get();
+            if (!nextItem) {
+                // no more data - nothing to do
+                return;
             }
+
+            // check if item has size and push this item to source
+            this.size && this.source.top.push(new Item(this.getRaw()));
+            // update this balancer
+            this.update({ itemData: nextItem });
         }
     } else {
         // no more data available - resize any amount we have
-        const availableResize = this.size - this.viewArea;
-        if (availableResize > 0) {
-            const toResize = availableResize >= size ? size : availableResize;
+        const viewResizeAvailable = this.size - this.viewArea;
+        if (viewResizeAvailable > 0) {
+            const toResize = viewResizeAvailable >= size ? size : viewResizeAvailable;
             this.viewArea += toResize;
         }
     } 
@@ -157,11 +164,8 @@ Balancer.prototype.update = function({ itemData, initViewArea }) {
     );
 }
 
-Balancer.prototype.isResizableDown = function() {
-    // if no more data available, resizable only if has area to expand
-    return this.source.bottom.isDataAvailable() || this.viewArea < this.size;
-}
 
+/*
 Balancer.prototype.resize = function(size, doScroll = true) {
     if (!this.size) return;
     const newViewArea = this.viewArea + size;
@@ -187,10 +191,8 @@ Balancer.prototype.resize = function(size, doScroll = true) {
         return size - notScrolled;
     }
 }
+*/
 
 Balancer.prototype.getMargin = function() {
-    if (this.viewArea <= this.size) {
-        return 0;
-    }
-    return this.viewArea - this.size;
+    return this.margin;
 }

@@ -7,10 +7,8 @@ import { Item, TopBalancer, BottomBalancer } from './Balancer';
 import { TopSource, BottomSource } from './Source';
 
 export default function Column({ topDataArray, bottomDataArray }) {
-    //this.source = dataSource;
     this._main = [];
-    //this.switchDataDirection = false;
-    //this.dataDirection = 'bottom';
+    // init sources
     this.source = {
         top: new TopSource(topDataArray),
         bottom: new BottomSource(bottomDataArray),
@@ -27,35 +25,7 @@ export default function Column({ topDataArray, bottomDataArray }) {
             bottomSource: this.source.bottom,
         }),
     };
-    //this.nextItem = null;
-
-    /*
-    */
 }
-
-/*
-Column.prototype.getNextItem = function(direction) {
-    let nextItem;
-    if (this.nextItem) {
-        nextItem = this.nextItem;
-        this.nextItem = null;
-    } else {
-        nextItem = this.source[direction].pop();
-    }
-    return nextItem;
-}
-
-Column.prototype.pushBackToSource = function(type) {
-    if (this.balancer[type].type === 'normal') {
-        this.source[type].push(this.balancer[type].getRaw());
-    }
-}
-
-Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
-    const dataToAdd = itemData || this.getNextItem(type);
-    this.balancer[type] = new Balancer(dataToAdd, viewArea);
-}
-*/
 
 Column.prototype.addToSource = function({ type, dataArray }) {
     if (!Object.keys(this.source).includes(type)) {
@@ -65,31 +35,26 @@ Column.prototype.addToSource = function({ type, dataArray }) {
     return this;
 }
 
-Column.prototype.resizeUp = function(size) {
-    while (this.getArea() < GRID_HEIGHT) {
-        this.balancer.bottom.resize(size);
-        const itemData = this.getNextItem('bottom');
-        if ((itemData.size + this.getArea() + COLUMN_PAD) < GRID_HEIGHT) {
-            this.main.push(new Item(itemData));
-        } else {
-            const viewArea = GRID_HEIGHT - this.getArea();
-            this.addBalancer({ type: 'bottom', itemData, viewArea });
-            break;
-        }
-    }
-}
-
-Column.prototype.resizeBottom = function(size) {
-    // TODO negative resize
-    if (this.getArea() > size) return this;
-    while (this.getArea() <= size && this.balancer.bottom.isResizableDown()) {
-        const toResize = size - this.getArea();
-        if (toResize < 0) throw new Error(`Column: resizeDown(): negative toResize: ${toResize}`);
+Column.prototype.resize = function(balancer, newSize) {
+    let counter = 0;
+    while (this.getArea() !== newSize) {
+        if (++counter > 100) throw new Error('counter');
+        // get resize amount
+        const toResize = newSize - this.getArea();
+        // choose either expand or shrink
         toResize > 0 
-            ? this.balancer.bottom.expand(toResize) 
-            : this.balancer.bottom.shrink(-toResize);
+            ? balancer.expand(toResize) 
+            : balancer.shrink(-toResize);
     }
     return this;
+}
+
+Column.prototype.resizeTop = function(newSize) {
+    return this.resize(this.balancer.top, newSize);
+}
+
+Column.prototype.resizeBottom = function(newSize) {
+    return this.resize(this.balancer.bottom, newSize);
 }
 
 Column.prototype.isAtTop = function() {
@@ -100,119 +65,10 @@ Column.prototype.isAtBottom = function() {
     return !this.nextItem && this.balancer.bottom.isFullView();
 }
 
-Column.prototype.moveDown = function(scroll = GRID_SCROLL_HEIGHT, noTopUpdate = false, botUpdate = false) {
-    if (this.dataDirection !== 'bottom') {
-        this.dataDirection = 'bottom';
-        if (this.nextItem) {
-            // get next item back to source
-            this.source.top.push(this.nextItem);
-            this.nextItem = null;
-        }
-    }
-    if (!this.nextItem && this.source.bottom.isDataAvailable()) {
-        this.nextItem = this.source.bottom.pop();
-    }
-    let scrollTop = scroll;
-    let scrollNext;
-    // update bottom balancer
-    if (!botUpdate) {
-        scrollTop = this.balancer.bottom.resize(scroll, !!this.nextItem);
-        scrollNext = this.balancer.bottom.scrollNext;
-        if (scrollNext && !!this.nextItem) {
-            if (scroll > 0 ) {
-                this.moveBalancerToMain('bottom', scrollNext);
-            } else {
-                this.moveMainToBalancer('bottom', scrollNext);
-            }
-        }
-    }
-    if (!botUpdate && (!scrollTop || noTopUpdate)) return this;
-    // update top balancer
-    this.balancer.top.resize(-scrollTop);
-    scrollNext = this.balancer.top.scrollNext;
-    if (scrollNext) {
-        // move main to balancer
-        if (scroll > 0) {
-            this.moveMainToBalancer('top', scrollNext);
-        } else {
-            this.moveBalancerToMain('top', scrollNext);
-        }
-    }
-    return this;
-};
-
-Column.prototype.moveUp = function(scroll = GRID_SCROLL_HEIGHT, noBottomUpdate = false) {
-    if (this.dataDirection !== 'top') {
-        this.dataDirection = 'top';
-        if (this.nextItem) {
-            // get next item back to source
-            this.source.bottom.push(this.nextItem);
-            this.nextItem = null;
-        }
-    }
-    // get next item in advance
-    if (!this.nextItem && this.source.top.isDataAvailable()) {
-        this.nextItem = this.source.top.pop();
-    }
-    // update top balancer
-    const scrollBottom = this.balancer.top.resize(scroll, !!this.nextItem);
-    let scrollNext = this.balancer.top.scrollNext;
-    if (scrollNext && !!this.nextItem) {
-        if (scroll > 0) {
-            this.moveBalancerToMain('top', scrollNext);
-        } else {
-            this.moveMainToBalancer('top', scrollNext);
-        }
-    }
-    if (!scrollBottom || noBottomUpdate) return this;
-    // update bottom balancer
-    this.balancer.bottom.resize(-scrollBottom);
-    scrollNext = this.balancer.bottom.scrollNext;
-    if (scrollNext) {
-        this.moveMainToBalancer('bottom', scrollNext);
-    }
-    return this;
-}
-
-Column.prototype.moveMainToBalancer = function(type, scrollNext) {
-    /*
-    // move balancer item back to source in case it is normal
-    this.pushBackToSource(type);
-    // create new balancer from main
-    let newBalancerData;
-    switch(type) {
-        case 'top': newBalancerData = this.main.shift().getRaw(); break;
-        case 'bottom': newBalancerData = this.main.pop().getRaw(); break;
-        default: throw new Error('mvb: wrong balancer type');
-    }
-    if (!newBalancerData) {
-        // if no main item available - create empty balancer
-        this.balancer[type] = new Balancer();
-        return;
-    }
-    const newViewArea = newBalancerData.size + COLUMN_PAD - scrollNext;
-    this.balancer[type] = new Balancer(newBalancerData, newViewArea);
-    */
-}
-
-Column.prototype.moveBalancerToMain = function(type, scrollNext) {
-    /*
-    const oldBalancer = this.balancer[type];
-    // push balancer to main
-    switch (type) {
-        case 'top': this.main.unshift(new Item(oldBalancer.getRaw())); break;
-        case 'bottom': this.main.push(new Item(oldBalancer.getRaw())); break;
-        default: throw new Error('mbm: wrong balancer type');
-    }
-    // get new balancer from source
-    this.balancer[type] = new Balancer(this.getNextItem(type), scrollNext);
-    */
-};
-
 Column.prototype.getArea = function() {
     const balancers = Object.keys(this.balancer).map(key => this.balancer[key]).reduce(countArea, 0);
     const main = this._main.reduce(countArea, 0);
-    const padding = (this._main.length + 1) * COLUMN_PAD;
+    const padding = main && (this._main.length + 1) * COLUMN_PAD;
     return balancers + main + padding;
 };
 
@@ -225,7 +81,7 @@ Column.prototype.getItemsCount = function() {
 };
 
 function countArea(acc, item) {
-    const viewArea = item.viewArea || item.size;
+    const viewArea = item.getSize();
     if (!viewArea) {
         return acc;
     }

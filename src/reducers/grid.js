@@ -11,8 +11,7 @@ import {
 } from '../constants/grid';
 
 function mutateInstance(obj) {
-    const proto = obj.__proto__;
-    return Object.assign(Object.create(proto), obj);
+    return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
 }
 
 const initialState = { 
@@ -39,10 +38,13 @@ export default function gridReducer(state = initialState, action) {
                     .addToSource(
                         {
                             type: 'bottom',
+                            dataArray: items,
+                            /*
                             dataArray: [
                                 // TODO create item from data
                                 { size: state.height, data: items }
                             ],
+                            */
                         },
                     )
                     .resizeBottom(state.height);

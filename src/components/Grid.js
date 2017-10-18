@@ -2,25 +2,20 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import Column from './Column';
-import { BalancerItem } from './Item';
+import { BalancerItem, Item } from './Item';
 import { GRID_WIDTH, GRID_HEIGHT } from '../constants/grid';
 
 //export default function Grid({ width, height, columns, columnHeight }) {
-function GridItem() {
-    return (
-        <div className="gridItem"></div>
-    );
-}
 
 function Grid({ width, height, gridData }) {
     return (
         <div className="Grid" style={{ width, height }}>
             <BalancerItem data={gridData.balancer.top} type="top">
-                <GridItem />
+                <Item />
             </BalancerItem>
-            { gridData._main.map((item, index) => <GridItem key={index} />) }
+            { gridData._main.map((item, index) => <Item key={index} data={item} />) }
             <BalancerItem data={gridData.balancer.bottom} type="bottom">
-                <GridItem />
+                <Item />
             </BalancerItem>
         </div>
     );

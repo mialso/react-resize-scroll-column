@@ -26,7 +26,7 @@ TopSource.prototype = Object.create(Source.prototype);
 TopSource.prototype.constructor = TopSource;
 
 TopSource.prototype.get = function() {
-    return this.data.pop();
+    return this._data.pop();
 }
 
 export function BottomSource(dataArray) {
