@@ -25,6 +25,15 @@ export default function Column({ topDataArray, bottomDataArray }) {
             bottomSource: this.source.bottom,
         }),
     };
+    this.version = 0;
+}
+
+Column.prototype.isScrollableDown = function() {
+    return this.source.bottom.isDataAvailable();
+}
+
+Column.prototype.isScrollableUp = function() {
+    return this.source.top.isDataAvailable();
 }
 
 Column.prototype.addToSource = function({ type, dataArray }) {
@@ -36,9 +45,10 @@ Column.prototype.addToSource = function({ type, dataArray }) {
 }
 
 Column.prototype.resize = function(balancer, newSize) {
+    console.log('column: resize: new Size: %s', newSize);
     let counter = 0;
     while (this.getArea() !== newSize) {
-        if (++counter > 100) throw new Error('counter');
+        if (++counter > 100) debugger;//throw new Error('counter');
         // get resize amount
         const toResize = newSize - this.getArea();
         // choose either expand or shrink
@@ -46,6 +56,8 @@ Column.prototype.resize = function(balancer, newSize) {
             ? balancer.expand(toResize) 
             : balancer.shrink(-toResize);
     }
+    this.version += 1;
+    console.log('column: resize: result: %s', this.getArea());
     return this;
 }
 
@@ -55,6 +67,16 @@ Column.prototype.resizeTop = function(newSize) {
 
 Column.prototype.resizeBottom = function(newSize) {
     return this.resize(this.balancer.bottom, newSize);
+}
+
+Column.prototype.scrollUp = function(size) {
+    console.log('Column: scrollUp: size: %s', size);
+    return this;
+}
+
+Column.prototype.scrollDown = function(size) {
+    console.log('Column: scrollDown: size: %s', size);
+    return this;
 }
 
 Column.prototype.isAtTop = function() {

@@ -19,24 +19,35 @@ export function Item({ data, applyStyle }) {
     );
 }
 
-export function BalancerItem({ data, type, children }) {
-    const style = {
-        marginTop: type === 'top' ? data.getMargin() : 0,
-        marginBottom: type === 'bottom' ? data.getMargin() : 0,
-        height: data.getSize(),
-    };
-    const childStyle = {
-        marginTop: type === 'top' ? data.viewArea - data.size : 0,
-        overflow: type === 'bottom' ? 'hidden' : 'visible',
-    };
-    return (
-        <div className="BalancerItem" style={style}>
-            {
-                React.Children.map(
-                    children,
-                    child => React.cloneElement(child, { applyStyle: childStyle, data }),
-                )
-            }
-        </div>
-    );
+export class BalancerItem extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.version !== this.props.version) {
+            return true;
+        }
+        return false;
+    }
+    render() {
+        console.log('BalancerItem render');
+        const { data, type, children } = this.props;
+        const style = {
+            marginTop: type === 'top' ? data.getMargin() : 0,
+            marginBottom: type === 'bottom' ? data.getMargin() : 0,
+            height: data.getSize(),
+            display: data.getSize() > 0 ? 'block' : 'none',
+        };
+        const childStyle = {
+            marginTop: type === 'top' ? data.viewArea - data.size : 0,
+            overflow: type === 'bottom' ? 'hidden' : 'visible',
+        };
+        return (
+            <div className="BalancerItem" style={style}>
+                {
+                    React.Children.map(
+                        children,
+                        child => React.cloneElement(child, { applyStyle: childStyle, data }),
+                    )
+                }
+            </div>
+        );
+    }
 }

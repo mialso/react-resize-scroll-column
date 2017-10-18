@@ -1,5 +1,9 @@
-import { GRID_DATA_READY, GRID_UPDATE_HEIGHT } from '../actions/grid';
-import { SCROLL_DOWN, SCROLL_UP } from '../actions/app';
+import {
+    GRID_SCROLL_DOWN,
+    GRID_SCROLL_UP,
+    GRID_DATA_READY,
+    GRID_RESIZE_DOWN,
+} from '../actions/grid';
 import { TopSource, BottomSource } from '../models/Source';
 import GridSet from '../models/GridSet';
 import Column from '../models/Column';
@@ -9,6 +13,8 @@ import {
     GRID_HEIGHT,
     GRID_SCROLL_HEIGHT,
 } from '../constants/grid';
+
+const SCROLL_SPEED = 15;
 
 function mutateInstance(obj) {
     return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
@@ -22,11 +28,20 @@ const initialState = {
 export default function gridReducer(state = initialState, action) {
     if (!action) return state;
     switch (action.type) {
-        case GRID_UPDATE_HEIGHT: {
+        case GRID_RESIZE_DOWN: {
             if (!action.payload) return state;
-            const height = Number.parseInt(action.payload.height, 10);
-            if (Number.isInteger(height)) {
-                return Object.assign({}, state, { height });
+            const newHeight = Number.parseInt(action.payload.height, 10);
+            console.log('GRID_RESIZE_DOWN: newHeight: %s', newHeight);
+            if (Number.isInteger(newHeight)) {
+                if (state.height) {
+                    return Object.assign({}, state, {
+                        height: newHeight,
+                        column: state.column.resizeBottom(newHeight),
+                    });
+                }
+                // no height was available, just init
+                // TODO sync height and data updates
+                return Object.assign({}, state, { height: newHeight });
             }
             return state;
         }
@@ -52,10 +67,15 @@ export default function gridReducer(state = initialState, action) {
             }
             return state;
         }
-        case SCROLL_DOWN: {
+        case GRID_SCROLL_DOWN: {
+            if (!action.payload) return state;
+            const scrollSize = Number.parseInt(action.payload, 10);
+            if (Number.isInteger(scrollSize)) {
+                
+            }
             return state;
         }
-        case SCROLL_UP: {
+        case GRID_SCROLL_UP: {
             return state;
         }
         default: return state;

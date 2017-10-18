@@ -25,7 +25,7 @@ Item.prototype.getRaw = function() {
     return this._raw;
 }
 
-export function Balancer({ itemData, initViewArea, topSource, bottomSource }) {
+export function Balancer({ itemData, initViewArea, topSource, bottomSource, margin }) {
     // inherit from item with default data in case no itemData provided
     Item.call(this, itemData);
     this.viewArea = initViewArea ? initViewArea : 0;
@@ -33,7 +33,8 @@ export function Balancer({ itemData, initViewArea, topSource, bottomSource }) {
         top: topSource,
         bottom: bottomSource,
     };
-    this.margin = 0;
+    this.margin = margin || 0;
+    this.version = 0;
 }
 
 Balancer.prototype = Object.create(Item.prototype);
@@ -83,11 +84,12 @@ Balancer.prototype.shrink = function(size) {
             let toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
             if (this.margin > 0) {
                 // shrink margin
-                if (this.margin > toResize) {
-                    toResize = 0;
+                if (this.margin >= toResize) {
                     this.margin -= toResize;
+                    toResize = 0;
                 } else {
                     toResize -= this.margin;
+                    this.margin = 0;
                 }
             }
             // shrink viewArea
@@ -103,7 +105,7 @@ Balancer.prototype.shrink = function(size) {
             // push this item back to source
             this.size && this.source.bottom.push(new Item(this.getRaw()));
             // update this balancer with full item view
-            this.update({ itemData: nextItem, initViewArea: nextItem.size });
+            this.update({ itemData: nextItem, initViewArea: nextItem.size, margin: COLUMN_PAD });
         }
     } else {
         // no more data available - resize any amount we have
@@ -114,6 +116,7 @@ Balancer.prototype.shrink = function(size) {
             this.viewArea -= toResize;
         }
     } 
+    this.version += 1;
 }
 
 Balancer.prototype.expand = function(size) {
@@ -150,6 +153,7 @@ Balancer.prototype.expand = function(size) {
             this.viewArea += toResize;
         }
     } 
+    this.version += 1;
 }
 
 Balancer.prototype.update = function({ itemData, initViewArea }) {
