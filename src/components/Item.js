@@ -19,7 +19,7 @@ export function Item({ data }) {
     );
 }
 
-export function BalancerItem({ data, type }) {
+export function BalancerItem({ data, type, children }) {
     const style = {
         marginTop: type === 'top' ? data.getMargin() : 0,
         marginBottom: type === 'bottom' ? data.getMargin() : 0,
@@ -31,7 +31,7 @@ export function BalancerItem({ data, type }) {
     };
     return (
         <div className="BalancerItem" style={style}>
-            <Card childStyle={childStyle} data={data} />
+            { children }
         </div>
     );
 }

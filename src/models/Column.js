@@ -6,36 +6,30 @@ import {
 import { Item, TopBalancer, BottomBalancer } from './Balancer';
 import { TopSource, BottomSource } from './Source';
 
-export default function Column({ topSource, bottomSource }) {
+export default function Column({ topDataArray, bottomDataArray }) {
     //this.source = dataSource;
     this._main = [];
     //this.switchDataDirection = false;
     //this.dataDirection = 'bottom';
+    this.source = {
+        top: new TopSource(topDataArray),
+        bottom: new BottomSource(bottomDataArray),
+    };
 
     // create empty balancers
     this.balancer = {
         top: new TopBalancer({
-            topSource,
+            topSource: this.source.top,
             bottomSource: new BottomSource(this._main),
         }),
         bottom: new BottomBalancer({
             topSource: new TopSource(this._main),
-            bottomSource,
+            bottomSource: this.source.bottom,
         }),
     };
     //this.nextItem = null;
 
     /*
-    while (this.getArea() < GRID_HEIGHT) {
-        const itemData = this.getNextItem('bottom');
-        if ((itemData.size + this.getArea() + COLUMN_PAD) < GRID_HEIGHT) {
-            this.main.push(new Item(itemData));
-        } else {
-            const viewArea = GRID_HEIGHT - this.getArea();
-            this.addBalancer({ type: 'bottom', itemData, viewArea });
-            break;
-        }
-    }
     */
 }
 
@@ -63,17 +57,38 @@ Column.prototype.addBalancer = function({ type, itemData, viewArea }) {
 }
 */
 
-Column.prototype.resizeTop = function() {
-    console.log('resizeTop');
-    this.moveDown(GRID_SCROLL_HEIGHT, true);
+Column.prototype.addToSource = function({ type, dataArray }) {
+    if (!Object.keys(this.source).includes(type)) {
+        throw new Error(`Column: addToSource(): wrong source type: ${type}`);
+    }
+    this.source[type].concat(dataArray);
     return this;
 }
 
-Column.prototype.resizeBottom = function(reverse = false, reverseScroll = false) {
-    console.log('resizeBottom');
-    let scroll = reverse ? GRID_SCROLL_HEIGHT : -GRID_SCROLL_HEIGHT;
-    scroll = reverseScroll ? -scroll : scroll;
-    reverse ? this.moveDown(scroll, true, true) : this.moveDown(scroll, true);
+Column.prototype.resizeUp = function(size) {
+    while (this.getArea() < GRID_HEIGHT) {
+        this.balancer.bottom.resize(size);
+        const itemData = this.getNextItem('bottom');
+        if ((itemData.size + this.getArea() + COLUMN_PAD) < GRID_HEIGHT) {
+            this.main.push(new Item(itemData));
+        } else {
+            const viewArea = GRID_HEIGHT - this.getArea();
+            this.addBalancer({ type: 'bottom', itemData, viewArea });
+            break;
+        }
+    }
+}
+
+Column.prototype.resizeBottom = function(size) {
+    // TODO negative resize
+    if (this.getArea() > size) return this;
+    while (this.getArea() <= size && this.balancer.bottom.isResizableDown()) {
+        const toResize = size - this.getArea();
+        if (toResize < 0) throw new Error(`Column: resizeDown(): negative toResize: ${toResize}`);
+        toResize > 0 
+            ? this.balancer.bottom.expand(toResize) 
+            : this.balancer.bottom.shrink(-toResize);
+    }
     return this;
 }
 
@@ -160,6 +175,7 @@ Column.prototype.moveUp = function(scroll = GRID_SCROLL_HEIGHT, noBottomUpdate =
 }
 
 Column.prototype.moveMainToBalancer = function(type, scrollNext) {
+    /*
     // move balancer item back to source in case it is normal
     this.pushBackToSource(type);
     // create new balancer from main
@@ -176,9 +192,11 @@ Column.prototype.moveMainToBalancer = function(type, scrollNext) {
     }
     const newViewArea = newBalancerData.size + COLUMN_PAD - scrollNext;
     this.balancer[type] = new Balancer(newBalancerData, newViewArea);
+    */
 }
 
 Column.prototype.moveBalancerToMain = function(type, scrollNext) {
+    /*
     const oldBalancer = this.balancer[type];
     // push balancer to main
     switch (type) {
@@ -188,12 +206,13 @@ Column.prototype.moveBalancerToMain = function(type, scrollNext) {
     }
     // get new balancer from source
     this.balancer[type] = new Balancer(this.getNextItem(type), scrollNext);
+    */
 };
 
 Column.prototype.getArea = function() {
     const balancers = Object.keys(this.balancer).map(key => this.balancer[key]).reduce(countArea, 0);
-    const main = this.main.reduce(countArea, 0);
-    const padding = (this.main.length + 1) * COLUMN_PAD;
+    const main = this._main.reduce(countArea, 0);
+    const padding = (this._main.length + 1) * COLUMN_PAD;
     return balancers + main + padding;
 };
 
@@ -202,7 +221,7 @@ Column.prototype.getItemsCount = function() {
         .map(key => this.balancer[key].size)
         .reduce((acc, size) => { return size > 0 ? ++acc : acc }, 0);
 
-    return balancerItems + this.main.length;
+    return balancerItems + this._main.length;
 };
 
 function countArea(acc, item) {

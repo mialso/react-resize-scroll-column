@@ -9,7 +9,7 @@ export default function Column({ data, height }) {
     return (
         <div className="Column" style={{ height }}>
             <BalancerItem data={data.balancer.top} type="top"/>
-            { data.main.map((item, index) => <Item key={index} data={item} />) }
+            { data._main.map((item, index) => <Item key={index} data={item} />) }
             <BalancerItem data={data.balancer.bottom} type="bottom"/>
         </div>
     );

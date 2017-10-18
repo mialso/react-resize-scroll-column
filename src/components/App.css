@@ -12,8 +12,7 @@
     background: green;
     display: flex;
     flex: 1;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column;
 }
 
 .Column {

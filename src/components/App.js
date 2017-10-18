@@ -1,12 +1,19 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { gridDataReady } from '../actions/grid'
+import { gridDataReady, gridUpdateHeight } from '../actions/grid'
 import { appReady, scrollUp, scrollDown } from '../actions/app';
 import Grid from './Grid';
 
 import './App.css';
 
 class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            topHeight: 300,
+        };
+    }
+
     wheelListener = (e) => {
         if (e.deltaY > 0) return this.props.scrollDown();
         if (e.deltaY < 0) return this.props.scrollUp();
@@ -15,21 +22,21 @@ class App extends Component {
     componentDidMount() {
         window.addEventListener('wheel', this.wheelListener);
         this.props.appReady();
+        this.props.gridUpdateHeight({ height: window.innerHeight - this.state.topHeight });
     }
     componentWillUnmount() {
         window.removeEventListener('wheel', this.wheelListener);
     }
     componentWillReceiveProps(newProps) {
         if (Array.isArray(newProps.items) && (newProps.items !== this.props.items)) {
-            this.props.gridDataReady(newProps.items);
+            this.props.gridDataReady({ items: newProps.items });
         }
     }
     render() {
-        const { width, height, columns, columnHeight } = this.props;
         return (
             <div className="App">
-                <div style={{ height: window.innerHeight - height }}>TOP</div>
-                <Grid {...{ width, height, columns, columnHeight, minHeight: height }}/>
+                <div style={{ height: this.state.topHeight }}>TOP</div>
+                <Grid />
             </div>
         );
     }
@@ -38,10 +45,6 @@ class App extends Component {
 const mapStateToProps = ({ items, grid }) => {
     return {
         items: items.items,
-        width: grid.width,
-        height: grid.height,
-        columns: grid.columns,
-        columnHeight: grid.columnHeight,
     };
 };
 
@@ -49,6 +52,7 @@ export default connect(
     mapStateToProps,
     {
         gridDataReady,
+        gridUpdateHeight,
         appReady,
         scrollUp,
         scrollDown,

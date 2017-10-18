@@ -8,8 +8,16 @@ Source.prototype.push = function(item) {
 }
 
 Source.prototype.isDataAvailable = function() {
-    return this.data.length > 0;
+    return this._data.length > 0;
 }
+
+Source.prototype.concat = function(dataArray) {
+    if (!(Array.isArray(dataArray))) {
+        throw new Error(`Source: concat(): item is not array, but ${typeof dataArray}`);
+    }
+    this._data = this._data.concat(dataArray);
+}
+
 export function TopSource(dataArray) {
     Source.call(this, dataArray);
 }
