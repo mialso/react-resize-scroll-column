@@ -4,14 +4,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
 }
 
 .Grid {
     width: 100%;
     background: green;
     display: flex;
-    flex: 1;
     flex-direction: column;
     justify-content: space-between;
 }

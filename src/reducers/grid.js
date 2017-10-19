@@ -20,9 +20,13 @@ function mutateInstance(obj) {
     return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
 }
 
+function fixHandler(size) {
+    console.log('fix handler: %s', size);
+}
+
 const initialState = { 
     height: 0,
-    column: new Column({ topDataArray: [], bottomDataArray: [] }),
+    column: new Column({ topDataArray: [], bottomDataArray: [], fixHandler }),
 }
 
 export default function gridReducer(state = initialState, action) {
@@ -31,7 +35,6 @@ export default function gridReducer(state = initialState, action) {
         case GRID_RESIZE_DOWN: {
             if (!action.payload) return state;
             const newHeight = Number.parseInt(action.payload.height, 10);
-            console.log('GRID_RESIZE_DOWN: newHeight: %s', newHeight);
             if (Number.isInteger(newHeight)) {
                 if (state.height) {
                     return Object.assign({}, state, {

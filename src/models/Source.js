@@ -28,6 +28,11 @@ TopSource.prototype.constructor = TopSource;
 TopSource.prototype.get = function() {
     return this._data.pop();
 }
+/*
+TopSource.prototype.push = function(item) {
+    this._data.unshift(item);
+}
+*/
 
 export function BottomSource(dataArray) {
     Source.call(this, dataArray);
@@ -39,6 +44,11 @@ BottomSource.prototype.constructor = BottomSource;
 BottomSource.prototype.get = function() {
     return this._data.shift();
 }
+/*
+BottomSource.prototype.push = function(item) {
+    this._data.push(item);
+}
+*/
 /*
 function getGridSource(source, columns) {
     const bottomBuffer = source.slice();

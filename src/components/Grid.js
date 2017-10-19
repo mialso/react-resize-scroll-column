@@ -15,11 +15,11 @@ class Grid extends React.Component {
         return false;
     }
     render() {
-        const { width, gridData } = this.props;
+        const { width, gridData, height } = this.props;
         const topBalancer = gridData.balancer.top;
         const bottomBalancer = gridData.balancer.bottom;
         return (
-            <div className="Grid" style={{ width }}>
+            <div className="Grid" style={{ width, height }}>
                 <BalancerItem data={topBalancer} type="top" version={topBalancer.version}>
                     <Item />
                 </BalancerItem>
@@ -37,6 +37,7 @@ function mapStateToProps(state) {
         width: GRID_WIDTH,
         gridData: state.grid.column,
         version: state.grid.column.version,
+        height: state.grid.column.getArea(),
     };
 }
 

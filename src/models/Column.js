@@ -6,7 +6,7 @@ import {
 import { Item, TopBalancer, BottomBalancer } from './Balancer';
 import { TopSource, BottomSource } from './Source';
 
-export default function Column({ topDataArray, bottomDataArray }) {
+export default function Column({ topDataArray, bottomDataArray, fixHandler }) {
     this._main = [];
     // init sources
     this.source = {
@@ -25,15 +25,18 @@ export default function Column({ topDataArray, bottomDataArray }) {
             bottomSource: this.source.bottom,
         }),
     };
+    this.fixHandler = fixHandler;
     this.version = 0;
 }
 
 Column.prototype.isScrollableDown = function() {
-    return this.source.bottom.isDataAvailable();
+    return this.source.bottom.isDataAvailable() || !this.balancer.bottom.isFullView();
+    //return !this.balancer.bottom.isFixed();
 }
 
 Column.prototype.isScrollableUp = function() {
-    return this.source.top.isDataAvailable();
+    return this.source.top.isDataAvailable() || !this.balancer.top.isFullView();
+    //return !this.balancer.top.isFixed();
 }
 
 Column.prototype.addToSource = function({ type, dataArray }) {
@@ -45,7 +48,6 @@ Column.prototype.addToSource = function({ type, dataArray }) {
 }
 
 Column.prototype.resize = function(balancer, newSize) {
-    console.log('column: resize: new Size: %s', newSize);
     let counter = 0;
     while (this.getArea() !== newSize) {
         if (++counter > 40) {
@@ -55,33 +57,47 @@ Column.prototype.resize = function(balancer, newSize) {
         // get resize amount
         const toResize = newSize - this.getArea();
         // choose either expand or shrink
-        toResize > 0 
-            ? balancer.expand(toResize) 
-            : balancer.shrink(-toResize);
+        if (toResize > 0) {
+            // if balancer is not able to resize more - go out from loop
+            if (balancer.isFixed()) {
+                //debugger;
+                break;
+            }
+            balancer.expand(toResize) 
+        } else {
+            balancer.shrink(-toResize);
+        }
+    }
+    const sizeAfter = this.getArea();
+    if (sizeAfter !== newSize) {
+        // we are not able to resize more, balancer is fixed
+        // TODO possible implement fixHandler
+        if (typeof this.fixHandler === 'function') {
+            setTimeout(() => this.fixHandler(sizeAfter), 0);
+        }
+
+        // or just reverse back opposite balancer
     }
     this.version += 1;
-    console.log('column: resize: result: %s', this.getArea());
     return this;
 }
 
 Column.prototype.resizeTop = function(newSize) {
-    if (this.balancer.top.type === 'empty') this.balancer.top.updateFromMain();
+    if (this.balancer.top.type === 'empty') this.balancer.top.updateFromMain(false);
     return this.resize(this.balancer.top, newSize);
 }
 
 Column.prototype.resizeBottom = function(newSize) {
-    if (this.balancer.bottom.type === 'empty') this.balancer.bottom.updateFromMain();
+    if (this.balancer.bottom.type === 'empty') this.balancer.bottom.updateFromMain(false);
     return this.resize(this.balancer.bottom, newSize);
 }
 
 Column.prototype.scrollUp = function(size) {
-    console.log('Column: scrollUp: size: %s', size);
     const currentArea = this.getArea();
     return this.resizeTop(currentArea - size).resizeBottom(currentArea);
 }
 
 Column.prototype.scrollDown = function(size) {
-    console.log('Column: scrollDown: size: %s', size);
     const currentArea = this.getArea();
     return this.resizeTop(currentArea + size).resizeBottom(currentArea);
     return this;
@@ -96,9 +112,9 @@ Column.prototype.isAtBottom = function() {
 }
 
 Column.prototype.getArea = function() {
-    const balancers = Object.keys(this.balancer).map(key => this.balancer[key]).reduce(countArea, 0);
-    const main = this._main.reduce(countArea, 0);
-    const padding = main && (this._main.length + 1) * COLUMN_PAD;
+    const balancers = this.countBalancersArea();
+    const main = this.countMainArea();
+    const padding = main && (this._main.length + 1) * COLUMN_PAD || COLUMN_PAD;
     return balancers + main + padding;
 };
 
@@ -110,10 +126,16 @@ Column.prototype.getItemsCount = function() {
     return balancerItems + this._main.length;
 };
 
-function countArea(acc, item) {
-    const viewArea = item.getSize();
-    if (!viewArea) {
-        return acc;
+Column.prototype.countBalancersArea = function() {
+    const topBalancerViewArea = this.balancer.top.getSize();
+    const bottomBalancerViewArea = this.balancer.bottom.getSize();
+    let padding = 0;
+    if (topBalancerViewArea === 0 || bottomBalancerViewArea === 0) {
+        padding = - COLUMN_PAD;
     }
-    return acc + viewArea;
+    return topBalancerViewArea + bottomBalancerViewArea + padding;
+}
+
+Column.prototype.countMainArea = function() {
+    return this._main.reduce((acc, item) => { return acc + item.size }, 0)
 }
