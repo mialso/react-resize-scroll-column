@@ -11,7 +11,7 @@ function Card({ data, childStyle }) {
 }
 
 export function Item({ data, applyStyle }) {
-    const height = typeof data.getSize === 'function' ? data.getViewSize() : data.size;
+    const height = data.size;
     const style = Object.assign({}, applyStyle, { height });
     return (
         <div className="Item" style={style}>
@@ -34,10 +34,11 @@ export class BalancerItem extends React.Component {
             marginBottom: type === 'bottom' ? data.getMargin() : 0,
             height: data.getViewSize(),
             display: data.getSize() > 0 ? 'block' : 'none',
+            overflow: 'hidden',
         };
         const childStyle = {
-            //marginTop: type === 'top' ? data.viewArea - data.size : 0,
-            overflow: type === 'bottom' ? 'hidden' : 'visible',
+            marginTop: type === 'top' ? data.viewArea - data.size : 0,
+            //overflow: type === 'bottom' ? 'hidden' : 'visible',
         };
         return (
             <div className="BalancerItem" style={style}>
