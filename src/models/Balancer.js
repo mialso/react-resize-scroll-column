@@ -25,7 +25,7 @@ Item.prototype.getRaw = function() {
     return this._raw;
 }
 
-export function Balancer({ itemData, initViewArea, topSource, bottomSource, margin, version }) {
+export function Balancer({ itemData, initViewArea, topSource, bottomSource, version }) {
     // inherit from item with default data in case no itemData provided
     Item.call(this, itemData);
     this.viewArea = initViewArea ? initViewArea : 0;
@@ -33,7 +33,6 @@ export function Balancer({ itemData, initViewArea, topSource, bottomSource, marg
         top: topSource,
         bottom: bottomSource,
     };
-    this.margin = margin || 0;
     this.version = version || 0;
 }
 
@@ -57,7 +56,6 @@ TopBalancer.prototype.updateFromMain = function(addMargin = true) {
     this.update({
         itemData: nextItem,
         initViewArea: nextItem && nextItem.size,
-        margin: addMargin ? COLUMN_PAD : 0,
     });
 }
 TopBalancer.prototype.updateFromData = function() {
@@ -89,7 +87,6 @@ BottomBalancer.prototype.updateFromMain = function(addMargin = true) {
     this.update({
         itemData: nextItem,
         initViewArea: nextItem && nextItem.size,
-        margin: addMargin ? COLUMN_PAD : 0,
         version: this.version + 1,
     });
 }
@@ -101,7 +98,7 @@ BottomBalancer.prototype.updateFromData = function() {
 
 // TODO refactor getSize and getViewSize
 Balancer.prototype.getSize = function() {
-    return this.viewArea + this.margin;
+    return this.viewArea;
 }
 
 Balancer.prototype.getViewSize = function() {
@@ -119,27 +116,17 @@ Balancer.prototype.isFullView = function() {
 
 Balancer.prototype.shrink = function(size) {
     if (!size || size < 0) throw new Error(`Balancer: resizeDown(): no size or lower then 0: ${size}`);
-    const viewResizeAvailable = this.viewArea + this.margin;
+    const viewResizeAvailable = this.viewArea;
     // first - resize if available
     if (viewResizeAvailable) {
         // shrink item view
         let toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
-        if (this.margin > 0) {
-            // shrink margin
-            if (this.margin >= toResize) {
-                this.margin -= toResize;
-                toResize = 0;
-            } else {
-                toResize -= this.margin;
-                this.margin = 0;
-            }
-        }
         // shrink viewArea
         this.viewArea -= toResize;
         this.version += 1;
     }
     // no more resize available - try to push item to and get new item from source
-    if ((this.viewArea + this.margin) === 0) {
+    if (this.viewArea === 0) {
         this.moveItemToData();
         this.isShrinkDataAvailable() && this.updateFromMain();
     }
@@ -155,9 +142,6 @@ Balancer.prototype.expand = function(size) {
             // expand item view
             const toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
             this.viewArea += toResize;
-        } else if (size <= (COLUMN_PAD - this.margin) && this.source.bottom.isDataAvailable()) {
-            // expand item margin
-            this.margin += size;
         } else {
             this.updateFromData();
         }
@@ -175,51 +159,17 @@ Balancer.prototype.expand = function(size) {
     this.version += 1;
 }
 
-Balancer.prototype.update = function({ itemData, initViewArea, margin }) {
+Balancer.prototype.update = function({ itemData, initViewArea }) {
     Balancer.call(
         this, 
         {
             initViewArea,
             itemData,
-            margin,
             version: this.version,
             topSource: this.source.top,
             bottomSource: this.source.bottom,
         },
     );
-}
-
-
-/*
-Balancer.prototype.resize = function(size, doScroll = true) {
-    if (!this.size) return;
-    const newViewArea = this.viewArea + size;
-    if (doScroll) {
-        if (newViewArea > this.size + COLUMN_PAD) {
-            this.scrollNext = newViewArea - this.size - COLUMN_PAD;
-            this.viewArea = this.size;
-        } else if(newViewArea <= 0) {
-            this.scrollNext = -newViewArea;
-            this.viewArea = 0;
-        } else {
-            this.viewArea += size;
-        }
-        return size;
-    } else {
-        let notScrolled = 0;
-        if (newViewArea > this.size) {
-            notScrolled = newViewArea - this.size
-        }
-        this.scrollNext = 0;
-        this.viewArea = newViewArea - notScrolled;
-        // return the resized amount
-        return size - notScrolled;
-    }
-}
-*/
-
-Balancer.prototype.getMargin = function() {
-    return this.margin;
 }
 
 TopBalancer.prototype.isFixed = function() {

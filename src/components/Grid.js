@@ -23,7 +23,7 @@ class Grid extends React.Component {
                 <BalancerItem data={topBalancer} type="top" version={topBalancer.version}>
                     <Item />
                 </BalancerItem>
-                { gridData._main.map((item, index) => <Item key={index} data={item} />) }
+                { gridData._main.map((item, index) => <Item key={index} data={item} applyClass={item.renderClass} />) }
                 <BalancerItem data={bottomBalancer} type="bottom" version={bottomBalancer.version}>
                     <Item />
                 </BalancerItem>

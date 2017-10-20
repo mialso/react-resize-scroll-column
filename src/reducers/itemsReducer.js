@@ -1,5 +1,10 @@
 import { APP_READY } from '../actions/app';
 
+const divider = {
+    size: 20,
+    renderClass: 'divider',
+};
+
 function generateItems(number, date) {
     const dayTime = Number.parseInt(Math.random() * 1000 * 60 * 60 * 24, 10);
     const dayStart = new Date('2017', '10', date).getTime();
@@ -9,14 +14,13 @@ function generateItems(number, date) {
         const newItem = {
             size: Number.parseInt(Math.random() * 150, 10) + 50,
             date: dayStart + dayTime,
-            data: {
-                text: i,
-            },
-            index: i,
+            data: {},
+            renderClass: 'item',
         };
         items.push(newItem);
+        if (i < number - 1) items.push(Object.assign({}, divider));
     }
-
+    items.forEach((item, index) => item.index = index);
     return items;
 }
 

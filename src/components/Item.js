@@ -10,11 +10,11 @@ function Card({ data, childStyle }) {
     );
 }
 
-export function Item({ data, applyStyle }) {
+export function Item({ data, applyStyle, applyClass }) {
     const height = data.size;
     const style = Object.assign({}, applyStyle, { height });
     return (
-        <div className="Item" style={style}>
+        <div className={`Item ${applyClass}`} style={style}>
             <Card data={data} />
         </div>
     );
@@ -30,8 +30,6 @@ export class BalancerItem extends React.Component {
     render() {
         const { data, type, children } = this.props;
         const style = {
-            marginTop: type === 'top' ? data.getMargin() : 0,
-            marginBottom: type === 'bottom' ? data.getMargin() : 0,
             height: data.getViewSize(),
             display: data.getSize() > 0 ? 'block' : 'none',
             overflow: 'hidden',
@@ -45,7 +43,14 @@ export class BalancerItem extends React.Component {
                 {
                     React.Children.map(
                         children,
-                        child => React.cloneElement(child, { applyStyle: childStyle, data }),
+                        child => React.cloneElement(
+                            child,
+                            {
+                                applyStyle: childStyle,
+                                applyClass: data._raw.renderClass,
+                                data,
+                            }
+                        ),
                     )
                 }
             </div>

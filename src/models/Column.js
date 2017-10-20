@@ -1,9 +1,4 @@
-import {
-    GRID_HEIGHT,
-    GRID_SCROLL_HEIGHT,
-    COLUMN_PAD,
-} from '../constants/grid';
-import { Item, TopBalancer, BottomBalancer } from './Balancer';
+import { TopBalancer, BottomBalancer } from './Balancer';
 import { TopSource, BottomSource } from './Source';
 
 export default function Column({ topDataArray, bottomDataArray, fixHandler }) {
@@ -31,12 +26,10 @@ export default function Column({ topDataArray, bottomDataArray, fixHandler }) {
 
 Column.prototype.isScrollableDown = function() {
     return this.source.bottom.isDataAvailable() || !this.balancer.bottom.isFullView();
-    //return !this.balancer.bottom.isFixed();
 }
 
 Column.prototype.isScrollableUp = function() {
     return this.source.top.isDataAvailable() || !this.balancer.top.isFullView();
-    //return !this.balancer.top.isFixed();
 }
 
 Column.prototype.addToSource = function({ type, dataArray }) {
@@ -76,7 +69,7 @@ Column.prototype.resize = function(balancer, newSize) {
             setTimeout(() => this.fixHandler(sizeAfter), 0);
         }
 
-        // or just reverse back opposite balancer
+        // TODO or just reverse back opposite balancer
     }
     this.version += 1;
     return this;
@@ -114,8 +107,7 @@ Column.prototype.isAtBottom = function() {
 Column.prototype.getArea = function() {
     const balancers = this.countBalancersArea();
     const main = this.countMainArea();
-    const padding = main && (this._main.length + 1) * COLUMN_PAD || COLUMN_PAD;
-    return balancers + main + padding;
+    return balancers + main;
 };
 
 Column.prototype.getItemsCount = function() {
@@ -129,11 +121,7 @@ Column.prototype.getItemsCount = function() {
 Column.prototype.countBalancersArea = function() {
     const topBalancerViewArea = this.balancer.top.getSize();
     const bottomBalancerViewArea = this.balancer.bottom.getSize();
-    let padding = 0;
-    if (topBalancerViewArea === 0 || bottomBalancerViewArea === 0) {
-        padding = - COLUMN_PAD;
-    }
-    return topBalancerViewArea + bottomBalancerViewArea + padding;
+    return topBalancerViewArea + bottomBalancerViewArea;
 }
 
 Column.prototype.countMainArea = function() {

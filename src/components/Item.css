@@ -1,8 +1,8 @@
-.Item {
+.Item.item {
     background: blue;
 }
 
-.BalancerItem {
+.Item.divider {
     background: lightblue;
 }
 
