@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { gridSetDataUpdate, gridSetResizeDown } from '../actions/gridSet'
+import {
+    gridSetDataUpdate,
+    gridSetResizeDown,
+    gridSetScrollDown,
+    gridSetScrollUp,
+} from '../actions/gridSet'
 import { appReady, scrollUp, scrollDown } from '../actions/app';
 import ColumnSet from './ColumnSet';
 import './App.css';
@@ -36,10 +41,11 @@ class App extends Component {
         }
     }
     scrollUpHandler = () => {
+        console.log('scroll down handler');
         if (this.props.isGridScrollableUp) {
             console.log('scroll up handler: grid is scrollable');
             // scroll grid
-            //this.props.gridScrollDown(SCROLL_SPEED);
+            this.props.gridSetScrollDown(SCROLL_SPEED);
         } else {
             // resize top
             const { topHeight, maxTopHeight } = this.state;
@@ -48,7 +54,7 @@ class App extends Component {
             const amountToResize = maxTopHeight - topHeight > SCROLL_SPEED ? SCROLL_SPEED : maxTopHeight - topHeight;
             this.setState({ topHeight: topHeight + amountToResize });
             // resize grid
-            //this.props.gridResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
+            this.props.gridSetResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
         }
     }
     scrollDownHandler = () => {
@@ -58,16 +64,16 @@ class App extends Component {
             if (topHeight > SCROLL_SPEED) {
                 // we may resize all amount
                 this.setState({ topHeight: topHeight - SCROLL_SPEED });
-                //this.props.gridResizeDown({ height: this.getGridHeight(topHeight - SCROLL_SPEED) });
+                this.props.gridSetResizeDown({ height: this.getGridHeight(topHeight - SCROLL_SPEED) });
             } else {
                 // will resize only for top available amount
                 this.setState({ topHeight: 0 });
-                //this.props.gridResizeDown({ height: this.getGridHeight() });
+                this.props.gridSetResizeDown({ height: this.getGridHeight() });
                 // TODO expose grid scroll
             }
         } else {
             // scroll grid
-            //this.props.gridScrollUp(SCROLL_SPEED);
+            this.props.gridSetScrollUp(SCROLL_SPEED);
         }
     }
     getGridHeight = (topHeight = 0) => {
@@ -87,8 +93,8 @@ class App extends Component {
 const mapStateToProps = ({ items, gridSet }) => {
     return {
         items: items.items,
-        isGridScrollableDown: false,//grid.column.isScrollableDown(),
-        isGridScrollableUp: false,//grid.column.isScrollableUp(),
+        isGridScrollableDown: gridSet.columns.reduce((acc, col) => col.isScrollableDown() || acc, false),
+        isGridScrollableUp: gridSet.columns.reduce((acc, col) => col.isScrollableUp() || acc, false),
     };
 };
 
@@ -97,6 +103,8 @@ export default connect(
     {
         gridSetDataUpdate,
         gridSetResizeDown,
+        gridSetScrollDown,
+        gridSetScrollUp,
         appReady,
         scrollUp,
         scrollDown,

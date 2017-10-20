@@ -16,3 +16,17 @@ export const gridSetResizeDown = (data) => {
         payload: data,
     };
 };
+
+export const gridSetScrollUp = (data) => {
+    return {
+        type: GRIDSET_SCROLL_UP,
+        payload: data,
+    };
+};
+
+export const gridSetScrollDown = (data) => {
+    return {
+        type: GRIDSET_SCROLL_DOWN,
+        payload: data,
+    };
+};

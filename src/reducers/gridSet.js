@@ -28,6 +28,8 @@ const initialState = {
     columnWidth: 150,
     source: new GridSetSource([]),
     columns: [],
+    isScrollableDown: false,
+    isScrollableUp: false,
 }
 
 export default function gridSetReducer(state = initialState, action) {
@@ -75,30 +77,12 @@ export default function gridSetReducer(state = initialState, action) {
             }
             return state;
         }
-            /*
-        case GRID_SET_DATA_READY: {
-            if (!action.payload) return state;
-            const { items } = action.payload;
-            if (Array.isArray(items) && items.length > 0) {
-                const updatedColumn = state.column
-                    .addToSource(
-                        {
-                            type: 'bottom',
-                            dataArray: items,
-                        },
-                    )
-                    .resizeBottom(state.height);
-                return Object.assign({}, state, { column: mutateInstance(updatedColumn) });
-            }
-            return state;
-        }
-        */
         case GRIDSET_SCROLL_DOWN: {
             if (!action.payload) return state;
             const scrollSize = Number.parseInt(action.payload, 10);
             if (Number.isInteger(scrollSize)) {
                 return Object.assign({}, state, {
-                    column: state.column.scrollDown(scrollSize),
+                    columns: state.columns.map(column => column.scrollDown(scrollSize)),
                 });
             }
             return state;
@@ -108,7 +92,7 @@ export default function gridSetReducer(state = initialState, action) {
             const scrollSize = Number.parseInt(action.payload, 10);
             if (Number.isInteger(scrollSize)) {
                 return Object.assign({}, state, {
-                    column: state.column.scrollUp(scrollSize),
+                    columns: state.columns.map(column => column.scrollUp(scrollSize)),
                 });
             }
             return state;

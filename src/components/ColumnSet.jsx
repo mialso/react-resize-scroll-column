@@ -4,11 +4,12 @@ import Column from './Column';
 
 export class ColumnSet extends React.Component {
     render() {
-        const { gridSet } = this.props;
+        console.log('columnSet render()');
+        const { width, columns, columnWidth } = this.props;
         return (
-            <div className="ColumnSet" style={{ width: gridSet.width }}>
+            <div className="ColumnSet" style={{ width }}>
                 {
-                    gridSet.columns.map((column, i) => <Column key={i} width={gridSet.columnWidth} column={column}/>)
+                    columns.map((column, i) => <Column key={i} width={columnWidth} column={column} version={column.version}/>)
                 }
             </div>
         );
@@ -17,7 +18,9 @@ export class ColumnSet extends React.Component {
 
 const mapStateToProps = ({ gridSet }) => {
     return {
-        gridSet: gridSet || {},
+        width: gridSet.width,
+        columns: gridSet.columns,
+        columnWidth: gridSet.columnWidth,
         isGridScrollableDown: false,//grid.column.isScrollableDown(),
         isGridScrollableUp: false,//grid.column.isScrollableUp(),
     };

@@ -5,12 +5,13 @@ import './Column.css';
 
 export default class Column extends React.Component {
     shouldComponentUpdate(nextProps) {
-        if (nextProps.column.version !== this.props.column.version) {
+        if (nextProps.version !== this.props.version) {
             return true;
         }
         return false;
     }
     render() {
+        console.log('column render()');
         const { width, column } = this.props;
         const topBalancer = column.balancer.top;
         const bottomBalancer = column.balancer.bottom;

@@ -60,14 +60,19 @@ TopBalancer.prototype.updateFromMain = function(addMargin = true) {
     });
 }
 TopBalancer.prototype.updateFromData = function() {
-    this.size && this.source.bottom.push(this.getRaw());
-    //const nextItem = this.source.top.get();
-    const nextItem = this.type !== 'item' ? this.source.divider.get() : this.source.top.get();
+    this.moveItemToMain();
+    // in case no more data available - set balancer to empty item
+    if (!this.source.top.isDataAvailable()) return this.update();
+    const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.top.get();
     this.update({ itemData: nextItem });
 }
 TopBalancer.prototype.moveItemToData = function() {
     if (this.type === 'divider') return;
     this.size && this.source.top.push(this.getRaw());
+}
+TopBalancer.prototype.moveItemToMain = function() {
+    // move item to main
+    this.size && this.source.bottom.prepend(this.getRaw());
 }
 
 export function BottomBalancer() {
@@ -86,6 +91,10 @@ BottomBalancer.prototype.moveItemToData = function() {
     if (this.type === 'divider') return;
     this.size && this.source.bottom.push(this.getRaw());
 }
+BottomBalancer.prototype.moveItemToMain = function() {
+    // move item to main
+    this.size && this.source.top.append(this.getRaw());
+}
 BottomBalancer.prototype.updateFromMain = function(addMargin = true) {
     const nextItem = this.source.top.get();
     this.update({
@@ -95,8 +104,11 @@ BottomBalancer.prototype.updateFromMain = function(addMargin = true) {
     });
 }
 BottomBalancer.prototype.updateFromData = function() {
-    this.size && this.source.top.push(this.getRaw());
+    this.moveItemToMain();
+    // in case no more data available - set balancer to empty item
+    if (!this.source.bottom.isDataAvailable()) return this.update();
     const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.bottom.get();
+    if (this.type === nextItem.type) debugger;
     //const nextItem = this.source.bottom.get();
     this.update({ itemData: nextItem, version: this.version + 1 });
 }
