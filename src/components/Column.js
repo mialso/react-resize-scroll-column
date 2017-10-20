@@ -3,14 +3,30 @@ import { Item, BalancerItem } from './Item';
 
 import './Column.css';
 
-export default function Column({ data, height }) {
-    const items = typeof data.getItemsCount === 'function' && data.getItemsCount();
-    if (items < 2) return null;
-    return (
-        <div className="Column" style={{ height }}>
-            <BalancerItem data={data.balancer.top} type="top"/>
-            { data._main.map((item, index) => <Item key={index} data={item} />) }
-            <BalancerItem data={data.balancer.bottom} type="bottom"/>
-        </div>
-    );
+export default class Column extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.column.version !== this.props.column.version) {
+            return true;
+        }
+        return false;
+    }
+    render() {
+        const { width, column } = this.props;
+        const topBalancer = column.balancer.top;
+        const bottomBalancer = column.balancer.bottom;
+        const height = column.getArea();
+        return (
+            <div className="Grid" style={{ width, height }}>
+                <BalancerItem data={topBalancer} type="top" version={topBalancer.version}>
+                    <Item />
+                </BalancerItem>
+                {
+                    column._main.map((item, index) => <Item key={index} data={item} applyClass={item.renderClass} />)
+                }
+                <BalancerItem data={bottomBalancer} type="bottom" version={bottomBalancer.version}>
+                    <Item />
+                </BalancerItem>
+            </div>
+        );
+    }
 }

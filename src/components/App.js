@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { gridDataReady, gridResizeDown, gridScrollUp, gridScrollDown } from '../actions/grid'
+import { gridSetDataUpdate } from '../actions/gridSet'
 import { appReady, scrollUp, scrollDown } from '../actions/app';
-import Grid from './Grid';
+import Column from './Column';
 
 import './App.css';
 
@@ -26,21 +26,21 @@ class App extends Component {
     componentDidMount() {
         window.addEventListener('wheel', this.wheelListener);
         this.props.appReady();
-        this.props.gridResizeDown({ height: this.getGridHeight(this.state.topHeight) });
+        //this.props.gridResizeDown({ height: this.getGridHeight(this.state.topHeight) });
     }
     componentWillUnmount() {
         window.removeEventListener('wheel', this.wheelListener);
     }
     componentWillReceiveProps(newProps) {
         if (Array.isArray(newProps.items) && (newProps.items !== this.props.items)) {
-            this.props.gridDataReady({ items: newProps.items });
+            this.props.gridSetDataUpdate({ dataArray: newProps.items });
         }
     }
     scrollUpHandler = () => {
         if (this.props.isGridScrollableUp) {
             console.log('scroll up handler: grid is scrollable');
             // scroll grid
-            this.props.gridScrollDown(SCROLL_SPEED);
+            //this.props.gridScrollDown(SCROLL_SPEED);
         } else {
             // resize top
             const { topHeight, maxTopHeight } = this.state;
@@ -49,7 +49,7 @@ class App extends Component {
             const amountToResize = maxTopHeight - topHeight > SCROLL_SPEED ? SCROLL_SPEED : maxTopHeight - topHeight;
             this.setState({ topHeight: topHeight + amountToResize });
             // resize grid
-            this.props.gridResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
+            //this.props.gridResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
         }
     }
     scrollDownHandler = () => {
@@ -59,16 +59,16 @@ class App extends Component {
             if (topHeight > SCROLL_SPEED) {
                 // we may resize all amount
                 this.setState({ topHeight: topHeight - SCROLL_SPEED });
-                this.props.gridResizeDown({ height: this.getGridHeight(topHeight - SCROLL_SPEED) });
+                //this.props.gridResizeDown({ height: this.getGridHeight(topHeight - SCROLL_SPEED) });
             } else {
                 // will resize only for top available amount
                 this.setState({ topHeight: 0 });
-                this.props.gridResizeDown({ height: this.getGridHeight() });
+                //this.props.gridResizeDown({ height: this.getGridHeight() });
                 // TODO expose grid scroll
             }
         } else {
             // scroll grid
-            this.props.gridScrollUp(SCROLL_SPEED);
+            //this.props.gridScrollUp(SCROLL_SPEED);
         }
     }
     getGridHeight = (topHeight = 0) => {
@@ -76,30 +76,31 @@ class App extends Component {
     }
     render() {
         const { topHeight, maxTopHeight } = this.state;
+        const { gridSet } = this.props;
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>TOP</div>
-                <Grid />
+                <div className="GridSet">
+                    { gridSet.columns.map( column => <Column width={gridSet.columnWidth} column={column}/>) }
+                </div>
             </div>
         );
     }
 }
 
-const mapStateToProps = ({ items, grid }) => {
+const mapStateToProps = ({ items, gridSet }) => {
     return {
         items: items.items,
-        isGridScrollableDown: grid.column.isScrollableDown(),
-        isGridScrollableUp: grid.column.isScrollableUp(),
+        gridSet: gridSet || {},
+        isGridScrollableDown: false,//grid.column.isScrollableDown(),
+        isGridScrollableUp: false,//grid.column.isScrollableUp(),
     };
 };
 
 export default connect(
     mapStateToProps,
     {
-        gridDataReady,
-        gridResizeDown,
-        gridScrollUp,
-        gridScrollDown,
+        gridSetDataUpdate,
         appReady,
         scrollUp,
         scrollDown,

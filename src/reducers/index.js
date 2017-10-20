@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
 import items from './itemsReducer';
-import grid from './grid';
+import gridSet from './gridSet';
 
 export default combineReducers({
     items,
-    grid,
+    gridSet,
 });

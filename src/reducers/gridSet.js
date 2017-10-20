@@ -1,48 +1,67 @@
 import {
-    GRID_SCROLL_DOWN,
-    GRID_SCROLL_UP,
-    GRID_DATA_READY,
-    GRID_RESIZE_DOWN,
-} from '../actions/grid';
-import { TopSource, BottomSource } from '../models/Source';
-import GridSet from '../models/GridSet';
+    GRIDSET_SCROLL_DOWN,
+    GRIDSET_SCROLL_UP,
+    GRIDSET_RESIZE_DOWN,
+    GRIDSET_DATA_UPDATE,
+} from '../actions/gridSet';
 import Column from '../models/Column';
-import {
-    COLUMN_WIDTH,
-    GRID_WIDTH,
-    GRID_HEIGHT,
-    GRID_SCROLL_HEIGHT,
-} from '../constants/grid';
+import { GridSetSource } from '../models/Source';
 
-const SCROLL_SPEED = 15;
-
-function mutateInstance(obj) {
-    return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
+function prepareGridSetData(dataArray) {
+    return dataArray;
 }
 
 function fixHandler(size) {
     console.log('fix handler: %s', size);
 }
 
-function calculateColumns() {
+function calculateSetColumns(state) {
+    const { width, columnWidth } = state;
+    const columnsNumber = Number.parseInt(width / columnWidth, 10);
+    if (!Number.isInteger(columnsNumber)) return 0;
+    return columnsNumber;
 }
 
 const initialState = { 
     height: 0,
-    column: new Column({ topDataArray: [], bottomDataArray: [], fixHandler }),
+    width: 500,
+    columnWidth: 150,
+    source: new GridSetSource([]),
+    columns: [],
 }
 
-export default function gridReducer(state = initialState, action) {
+export default function gridSetReducer(state = initialState, action) {
     if (!action) return state;
     switch (action.type) {
-        case GRID_RESIZE_DOWN: {
+        case GRIDSET_DATA_UPDATE: {
+            const { dataArray } = action.payload;
+            if (!Array.isArray(dataArray)) return state;
+            // init new set with data
+            // calculate columns number
+            const columnsNumber = calculateSetColumns(state);
+            if (!columnsNumber) return state;
+            // init data source
+            state.source.addData(prepareGridSetData(dataArray));
+            // create columns
+            const columns = [];
+            for (let i = 0; i < columnsNumber; ++i) {
+                columns.push(new Column({
+                    topDataSource: state.source.top,
+                    bottomDataSource: state.source.bottom,
+                    fixHandler,
+                }));
+            }
+            state.columns = columns;
+            return state;
+        }
+        case GRIDSET_RESIZE_DOWN: {
             if (!action.payload) return state;
             const newHeight = Number.parseInt(action.payload.height, 10);
             if (Number.isInteger(newHeight)) {
                 if (state.height) {
                     return Object.assign({}, state, {
                         height: newHeight,
-                        column: state.column.resizeBottom(newHeight),
+                        columns: state.columns.map(column => column.resizeBottom(newHeight)),
                     });
                 }
                 // no height was available, just init
@@ -51,7 +70,8 @@ export default function gridReducer(state = initialState, action) {
             }
             return state;
         }
-        case GRID_DATA_READY: {
+            /*
+        case GRID_SET_DATA_READY: {
             if (!action.payload) return state;
             const { items } = action.payload;
             if (Array.isArray(items) && items.length > 0) {
@@ -67,7 +87,8 @@ export default function gridReducer(state = initialState, action) {
             }
             return state;
         }
-        case GRID_SCROLL_DOWN: {
+        */
+        case GRIDSET_SCROLL_DOWN: {
             if (!action.payload) return state;
             const scrollSize = Number.parseInt(action.payload, 10);
             if (Number.isInteger(scrollSize)) {
@@ -77,7 +98,7 @@ export default function gridReducer(state = initialState, action) {
             }
             return state;
         }
-        case GRID_SCROLL_UP: {
+        case GRIDSET_SCROLL_UP: {
             if (!action.payload) return state;
             const scrollSize = Number.parseInt(action.payload, 10);
             if (Number.isInteger(scrollSize)) {

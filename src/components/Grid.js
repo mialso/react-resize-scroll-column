@@ -5,8 +5,6 @@ import Column from './Column';
 import { BalancerItem, Item } from './Item';
 import { GRID_WIDTH, GRID_HEIGHT } from '../constants/grid';
 
-//export default function Grid({ width, height, columns, columnHeight }) {
-
 class Grid extends React.Component {
     shouldComponentUpdate(nextProps) {
         if (nextProps.version !== this.props.version) {

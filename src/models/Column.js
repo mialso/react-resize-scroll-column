@@ -1,12 +1,12 @@
 import { TopBalancer, BottomBalancer } from './Balancer';
 import { TopSource, BottomSource } from './Source';
 
-export default function Column({ topDataArray, bottomDataArray, fixHandler }) {
+export default function Column({ topDataSource, bottomDataSource, fixHandler }) {
     this._main = [];
     // init sources
     this.source = {
-        top: new TopSource(topDataArray),
-        bottom: new BottomSource(bottomDataArray),
+        top: topDataSource,
+        bottom: bottomDataSource,
     };
 
     // create empty balancers
@@ -33,7 +33,7 @@ Column.prototype.isScrollableUp = function() {
 }
 
 Column.prototype.addToSource = function({ type, dataArray }) {
-    if (!Object.keys(this.source).includes(type)) {
+    if (!Object.keys(this.source).indexOf(type) === -1) {
         throw new Error(`Column: addToSource(): wrong source type: ${type}`);
     }
     this.source[type].concat(dataArray);
@@ -93,7 +93,6 @@ Column.prototype.scrollUp = function(size) {
 Column.prototype.scrollDown = function(size) {
     const currentArea = this.getArea();
     return this.resizeTop(currentArea + size).resizeBottom(currentArea);
-    return this;
 }
 
 Column.prototype.isAtTop = function() {
