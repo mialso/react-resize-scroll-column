@@ -15,9 +15,9 @@ function generateItems(number, date) {
             date: dayStart + dayTime,
             data: {},
             renderClass: 'item',
+            type: 'item',
         };
         items.push(newItem);
-        if (i < number - 1) items.push(Object.assign({}, divider));
     }
     items.forEach((item, index) => item.index = index);
     return items;

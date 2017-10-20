@@ -87,3 +87,6 @@ export function GridSetSource(dataArray) {
 GridSetSource.prototype.addData = function(items) {
     this.bottom.pushArray(items);
 }
+GridSetSource.prototype.isDataAvailable = function() {
+    return Object.keys(this).reduce((acc, key) => this[key].isDataAvailable() || acc, false);
+}

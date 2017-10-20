@@ -14,6 +14,11 @@
     justify-content: space-between;
 }
 
+.ColumnSet {
+    display: flex;
+    justify-content: space-between;
+}
+
 .Column {
     width: 150px;
     background: grey;

@@ -1,6 +1,12 @@
 import { TopBalancer, BottomBalancer } from './Balancer';
 import { TopSource, BottomSource } from './Source';
 
+function getDivider() {
+    return {
+        get: () => { return { size: 20, renderClass: 'divider', type: 'divider' } },
+    };
+}
+
 export default function Column({ topDataSource, bottomDataSource, fixHandler }) {
     this._main = [];
     // init sources
@@ -14,10 +20,12 @@ export default function Column({ topDataSource, bottomDataSource, fixHandler }) 
         top: new TopBalancer({
             topSource: this.source.top,
             bottomSource: new BottomSource(this._main),
+            dividerSource: getDivider(),
         }),
         bottom: new BottomBalancer({
             topSource: new TopSource(this._main),
             bottomSource: this.source.bottom,
+            dividerSource: getDivider(),
         }),
     };
     this.fixHandler = fixHandler;

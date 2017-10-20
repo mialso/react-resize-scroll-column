@@ -45,11 +45,16 @@ export default function gridSetReducer(state = initialState, action) {
             // create columns
             const columns = [];
             for (let i = 0; i < columnsNumber; ++i) {
-                columns.push(new Column({
+                const newColumn = new Column({
                     topDataSource: state.source.top,
                     bottomDataSource: state.source.bottom,
                     fixHandler,
-                }));
+                });
+                columns.push(newColumn);
+            }
+            if (state.height) {
+                // resize columns if height available
+                columns.forEach(column => column.resizeBottom(state.height));
             }
             state.columns = columns;
             return state;
@@ -58,7 +63,7 @@ export default function gridSetReducer(state = initialState, action) {
             if (!action.payload) return state;
             const newHeight = Number.parseInt(action.payload.height, 10);
             if (Number.isInteger(newHeight)) {
-                if (state.height) {
+                if (state.height !== newHeight) {
                     return Object.assign({}, state, {
                         height: newHeight,
                         columns: state.columns.map(column => column.resizeBottom(newHeight)),

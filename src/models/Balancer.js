@@ -25,13 +25,14 @@ Item.prototype.getRaw = function() {
     return this._raw;
 }
 
-export function Balancer({ itemData, initViewArea, topSource, bottomSource, version }) {
+export function Balancer({ itemData, initViewArea, topSource, bottomSource, version, dividerSource }) {
     // inherit from item with default data in case no itemData provided
     Item.call(this, itemData);
     this.viewArea = initViewArea ? initViewArea : 0;
     this.source = {
         top: topSource,
         bottom: bottomSource,
+        divider: dividerSource,
     };
     this.version = version || 0;
 }
@@ -39,7 +40,7 @@ export function Balancer({ itemData, initViewArea, topSource, bottomSource, vers
 Balancer.prototype = Object.create(Item.prototype);
 Balancer.prototype.constructor = Balancer;
 
-export function TopBalancer({ itemData, initViewArea, topSource, bottomSource }) {
+export function TopBalancer() {
     Balancer.call(this, arguments[0]);
 }
 
@@ -60,14 +61,16 @@ TopBalancer.prototype.updateFromMain = function(addMargin = true) {
 }
 TopBalancer.prototype.updateFromData = function() {
     this.size && this.source.bottom.push(this.getRaw());
-    const nextItem = this.source.top.get();
+    //const nextItem = this.source.top.get();
+    const nextItem = this.type !== 'item' ? this.source.divider.get() : this.source.top.get();
     this.update({ itemData: nextItem });
 }
 TopBalancer.prototype.moveItemToData = function() {
+    if (this.type === 'divider') return;
     this.size && this.source.top.push(this.getRaw());
 }
 
-export function BottomBalancer({ itemData, initViewArea, topSource, bottomSource }) {
+export function BottomBalancer() {
     Balancer.call(this, arguments[0]);
 }
 
@@ -80,6 +83,7 @@ BottomBalancer.prototype.isExpandDataAvailable = function() {
     return this.source.bottom.isDataAvailable();
 }
 BottomBalancer.prototype.moveItemToData = function() {
+    if (this.type === 'divider') return;
     this.size && this.source.bottom.push(this.getRaw());
 }
 BottomBalancer.prototype.updateFromMain = function(addMargin = true) {
@@ -92,7 +96,8 @@ BottomBalancer.prototype.updateFromMain = function(addMargin = true) {
 }
 BottomBalancer.prototype.updateFromData = function() {
     this.size && this.source.top.push(this.getRaw());
-    const nextItem = this.source.bottom.get();
+    const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.bottom.get();
+    //const nextItem = this.source.bottom.get();
     this.update({ itemData: nextItem, version: this.version + 1 });
 }
 
@@ -168,6 +173,7 @@ Balancer.prototype.update = function({ itemData, initViewArea }) {
             version: this.version,
             topSource: this.source.top,
             bottomSource: this.source.bottom,
+            dividerSource: this.source.divider,
         },
     );
 }

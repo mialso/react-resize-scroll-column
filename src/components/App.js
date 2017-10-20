@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { gridSetDataUpdate } from '../actions/gridSet'
+import { gridSetDataUpdate, gridSetResizeDown } from '../actions/gridSet'
 import { appReady, scrollUp, scrollDown } from '../actions/app';
-import Column from './Column';
-
+import ColumnSet from './ColumnSet';
 import './App.css';
 
 const SCROLL_SPEED = 15;
@@ -26,7 +25,7 @@ class App extends Component {
     componentDidMount() {
         window.addEventListener('wheel', this.wheelListener);
         this.props.appReady();
-        //this.props.gridResizeDown({ height: this.getGridHeight(this.state.topHeight) });
+        this.props.gridSetResizeDown({ height: this.getGridHeight(this.state.topHeight) });
     }
     componentWillUnmount() {
         window.removeEventListener('wheel', this.wheelListener);
@@ -76,13 +75,10 @@ class App extends Component {
     }
     render() {
         const { topHeight, maxTopHeight } = this.state;
-        const { gridSet } = this.props;
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>TOP</div>
-                <div className="GridSet">
-                    { gridSet.columns.map( column => <Column width={gridSet.columnWidth} column={column}/>) }
-                </div>
+                <ColumnSet />
             </div>
         );
     }
@@ -91,7 +87,6 @@ class App extends Component {
 const mapStateToProps = ({ items, gridSet }) => {
     return {
         items: items.items,
-        gridSet: gridSet || {},
         isGridScrollableDown: false,//grid.column.isScrollableDown(),
         isGridScrollableUp: false,//grid.column.isScrollableUp(),
     };
@@ -101,6 +96,7 @@ export default connect(
     mapStateToProps,
     {
         gridSetDataUpdate,
+        gridSetResizeDown,
         appReady,
         scrollUp,
         scrollDown,
