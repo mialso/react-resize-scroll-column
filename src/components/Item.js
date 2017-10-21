@@ -10,12 +10,13 @@ function Card({ data, childStyle }) {
     );
 }
 
-export function Item({ data, applyStyle, applyClass }) {
+export function Item({ data, applyStyle, applyClass, childData }) {
     const height = data.size;
     const style = Object.assign({}, applyStyle, { height });
+    const renderItem = data.type === 'item' && typeof  childData.renderer === 'function';
     return (
         <div className={`Item ${applyClass}`} style={style}>
-            <Card data={data} />
+            { renderItem ? <childData.renderer data={data.data} /> : <Card data={data} /> }
         </div>
     );
 }
@@ -48,7 +49,7 @@ export class BalancerItem extends React.Component {
                             {
                                 applyStyle: childStyle,
                                 applyClass: data._raw.renderClass,
-                                data,
+                                data: data._raw,
                             }
                         ),
                     )

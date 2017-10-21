@@ -23,6 +23,20 @@ function generateItems(number, date, sizeMin, sizeDiff) {
     return items;
 }
 
+function generateCarItems(number) {
+    const items = [];
+    for (let i = 0; i < number; ++i) {
+        const newItem = {
+            photoHeight: Number.parseInt(Math.random() * 150, 10) + 50,
+            year: Number.parseInt(Math.random() * 70, 10) + 1945,
+            horsePower: Number.parseInt(Math.random() * 20, 10) + 80,
+            id: i,
+        };
+        items.push(newItem);
+    }
+    return items;
+}
+
 const initialState = {
     position: 0,
     items: [],
@@ -32,7 +46,15 @@ export default (state = initialState, action) => {
     switch (action.type) {
         case APP_READY: {
             state.items = generateItems(30, new Date(Date.now()).getDate().toString(), 50, 150);
-            state.largeItems = generateItems(5, new Date(Date.now()).getDate().toString(), 500, 1000);
+            state.large = generateItems(5, new Date(Date.now()).getDate().toString(), 500, 1000);
+            state.items.byDate = [
+                generateItems(20, '10', 50, 150),
+                generateItems(5, '11', 50, 200),
+                generateItems(10, '12', 50, 170),
+                generateItems(3, '13', 50, 200),
+                generateItems(15, '14', 50, 200),
+            ];
+            state.cars = generateCarItems(20);
             return Object.assign({}, state);
         }
         default: return state;

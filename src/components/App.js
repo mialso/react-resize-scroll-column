@@ -6,6 +6,27 @@ import './App.css';
 
 const SCROLL_SPEED = 15;
 
+function Car(props) {
+    const { year, horsePower, photoHeight } = props.data;
+    return (
+        <div className="Car">
+            <div className="Car-photo" style={{width: '100%', height: photoHeight}}></div>
+            <div className="Car-year" style={{height: 30}}>{year}</div>
+            <div className="Car-horsePower" style={{height: 30}}>{horsePower}</div>
+        </div>
+    );
+}
+
+function Divider() {
+    return (
+        <div className="Car-divider" style={{ width: '100%', height: 20 }}></div>
+    );
+}
+
+function calculateCarSize(car) {
+    return 30 + 30 + car.photoHeight;
+}
+
 class App extends Component {
     constructor(props) {
         super(props);
@@ -35,6 +56,7 @@ class App extends Component {
         return;
     }
     scrollUpHandler = (e) => {
+        e.preventDefault();
         console.log('scroll up handler');
         if (this._columnset.isScrollableDown()) {
             /*
@@ -59,6 +81,7 @@ class App extends Component {
         }
     }
     scrollDownHandler = (e) => {
+        e.preventDefault();
         console.log('scroll down handler');
         const { topHeight } = this.state;
         if (topHeight > 0) {
@@ -120,14 +143,16 @@ class App extends Component {
                     <button onClick={this.collapseTop} disabled={topCollapsed}>Collapse</button>
                 </div>
                 <ColumnSet
+                    id="first"
                     refColumnset={this.refColumnset}
                     //addScrollHandler={this.addScrollHandler}
                     width={500}
-                    columnWidth={350}
+                    columnWidth={150}
                     makeHeight={gridHeight}
                     fullViewSize={window.innerHeight}
-                    data={this.props.largeItems}
-                    //columns={this.props.columns}
+                    data={this.props.cars}
+                    childData={{ renderer: Car, getSize: calculateCarSize }}
+                    divider={{ renderer: Divider, size: 20 }}
                 />
             </div>
         );
@@ -137,7 +162,9 @@ class App extends Component {
 const mapStateToProps = ({ items, columnset }) => {
     return {
         items: items.items,
-        largeItems: items.largeItems,
+        largeItems: items.large,
+        itemsByDate: items.byDate,
+        cars: items.cars,
         //columns: columnset.columns,
     };
 };

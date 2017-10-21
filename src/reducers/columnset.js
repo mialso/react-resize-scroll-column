@@ -10,7 +10,7 @@ import Column from '../models/Column';
 import { GridSetSource } from '../models/Source';
 
 function prepareGridSetData(dataArray) {
-    return dataArray;
+    return parseItems(dataArray);
 }
 
 function fixHandler(size) {
@@ -24,6 +24,22 @@ function calculateSetColumns(state) {
     return columnsNumber;
 }
 
+function calculateCarSize(car) {
+    return 30 + 30 + car.photoHeight;
+}
+
+function parseItems(items) {
+    return items.map((item, index) => {
+        return {
+            size: calculateCarSize(item),
+            data: item,
+            renderClass: 'G-Item',
+            index,
+            type: 'item',
+        };
+    });
+}
+
 const initialState = { 
     height: 0,
     width: 0,
@@ -31,8 +47,26 @@ const initialState = {
     source: new GridSetSource([]),
     columns: [],
 }
-
-export default function columnsetReducer(state = initialState, action) {
+export default function reducer(state = {}, action) {
+    if (!(action && action.meta)) return state;
+    switch (action.type) {
+        case COLUMNSET_INIT_HEIGHT: {
+            const { id } = action.meta;
+            const newState = {};
+            newState[id] = columnsetReducer(undefined, action);
+            return Object.assign({}, state, newState); 
+        }
+        default: {
+            const { id } = action.meta;
+            if (!state[id]) return state;
+            const newState = columnsetReducer(state[id], action);
+            if (newState === state[id]) return state;
+            state[id] = newState;
+            return Object.assign({}, state);
+        }
+    }
+}
+function columnsetReducer(state = initialState, action) {
     if (!action) return state;
     switch (action.type) {
         case COLUMNSET_INIT_HEIGHT: {

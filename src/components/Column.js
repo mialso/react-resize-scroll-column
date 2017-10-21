@@ -12,20 +12,26 @@ export default class Column extends React.Component {
     }
     render() {
         console.log('column render()');
-        const { width, column } = this.props;
+        const { width, column, childData } = this.props;
         const topBalancer = column.balancer.top;
         const bottomBalancer = column.balancer.bottom;
         const height = column.getArea();
         return (
             <div className="Grid" style={{ width, height }}>
                 <BalancerItem data={topBalancer} type="top" version={topBalancer.version}>
-                    <Item />
+                    <Item childData={childData} />
                 </BalancerItem>
                 {
-                    column._main.map((item, index) => <Item key={index} data={item} applyClass={item.renderClass} />)
+                    column._main.map((item, index) => 
+                        <Item
+                            key={index}
+                            data={item}
+                            applyClass={item.renderClass}
+                            childData={childData}
+                        />)
                 }
                 <BalancerItem data={bottomBalancer} type="bottom" version={bottomBalancer.version}>
-                    <Item />
+                    <Item childData={childData} />
                 </BalancerItem>
             </div>
         );

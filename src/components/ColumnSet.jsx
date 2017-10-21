@@ -19,29 +19,32 @@ export class ColumnSet extends React.Component {
             height: this.props.makeHeight,
             width: this.props.width,
             columnWidth: this.props.columnWidth,
-        });
+        }, this.getMyMeta());
     }
     componentWillReceiveProps(newProps) {
         if (Array.isArray(newProps.data) && (newProps.data !== this.props.data)) {
-            this.props.columnsetDataUpdate({ dataArray: newProps.data });
+            this.props.columnsetDataUpdate({ dataArray: newProps.data }, this.getMyMeta());
         }
         if (newProps.makeHeight !== this.props.makeHeight) {
             if (!this.isScrollableUp()) {
-                this.props.columnsetResizeUp({ height: newProps.makeHeight });
+                this.props.columnsetResizeUp({ height: newProps.makeHeight }, this.getMyMeta());
             }
             if (!this.isScrollableDown()) {
-                this.props.columnsetResizeDown({ height: newProps.makeHeight });
+                this.props.columnsetResizeDown({ height: newProps.makeHeight }, this.getMyMeta());
             }
         }
     }
     componentWillUnmount() {
     }
+    getMyMeta() {
+        return { id: this.props.id };
+    }
     scrollHandler = (e, amount) => {
         if (e.deltaY > 0) {
-            return this.props.columnsetScrollUp(amount);
+            return this.props.columnsetScrollUp(amount, this.getMyMeta());
         }
         if (e.deltaY < 0) {
-            return this.props.columnsetScrollDown(amount);
+            return this.props.columnsetScrollDown(amount, this.getMyMeta());
         }
         return;
     }
@@ -56,23 +59,31 @@ export class ColumnSet extends React.Component {
     }
     render() {
         console.log('columnset render(): columns: %s', this.props.columns.length);
-        const { width, columns, columnWidth } = this.props;
+        const { width, columns, columnWidth, childData, divider } = this.props;
         return (
             <div ref={me => this._me = me} className="ColumnSet" style={{ width }}>
                 {
-                    columns.map((column, i) => <Column key={i} width={columnWidth} column={column} version={column.version}/>)
+                    columns.map((column, i) => 
+                        <Column
+                            key={i}
+                            width={columnWidth}
+                            column={column}
+                            version={column.version}
+                            childData={childData}
+                            divider={divider}
+                        />)
                 }
             </div>
         );
     }
 }
 
-const mapStateToProps = ({ columnset }) => {
+const mapStateToProps = ({ columnset }, { id }) => {
     return {
-        columns: columnset.columns,
-        height: columnset.columns.length > 0 ? columnset.columns[0].getArea() : 0,
-        isScrollableDown: columnset.columns.reduce((acc, col) => col.isScrollableDown() || acc, false),
-        isScrollableUp: columnset.columns.reduce((acc, col) => col.isScrollableUp() || acc, false),
+        columns: columnset[id] && columnset[id].columns || [],
+        height: columnset[id] && columnset[id].columns.length > 0 ? columnset[id].columns[0].getArea() : 0,
+        isScrollableDown: columnset[id] && columnset[id].columns.reduce((acc, col) => col.isScrollableDown() || acc, false),
+        isScrollableUp: columnset[id] && columnset[id].columns.reduce((acc, col) => col.isScrollableUp() || acc, false),
     };
 };
 
