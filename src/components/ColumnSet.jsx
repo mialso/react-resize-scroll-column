@@ -16,7 +16,7 @@ export class ColumnSet extends React.Component {
             this.props.refColumnset(this);
         }
         this.props.columnsetInitHeight({
-            height: this.props.initialHeight,
+            height: this.props.makeHeight,
             width: this.props.width,
             columnWidth: this.props.columnWidth,
         });
@@ -25,26 +25,26 @@ export class ColumnSet extends React.Component {
         if (Array.isArray(newProps.data) && (newProps.data !== this.props.data)) {
             this.props.columnsetDataUpdate({ dataArray: newProps.data });
         }
+        if (newProps.makeHeight !== this.props.makeHeight) {
+            if (!this.isScrollableUp()) {
+                this.props.columnsetResizeUp({ height: newProps.makeHeight });
+            }
+            if (!this.isScrollableDown()) {
+                this.props.columnsetResizeDown({ height: newProps.makeHeight });
+            }
+        }
     }
     componentWillUnmount() {
     }
-    scrollDown = (height) => {
-        this.props.columnsetScrollDown(height);
+    scrollHandler = (e, amount) => {
+        if (e.deltaY > 0) {
+            return this.props.columnsetScrollUp(amount);
+        }
+        if (e.deltaY < 0) {
+            return this.props.columnsetScrollDown(amount);
+        }
+        return;
     }
-    scrollUp = (height) => {
-        this.props.columnsetScrollUp(height);
-    }
-    resizeDown = (newSize) => {
-        this.props.columnsetResizeDown({ height: newSize });
-    }
-    resizeUp = (newSize) => {
-        this.props.columnsetResizeUp({ height: newSize });
-    }
-    /*
-    isFullView = () => {
-        return this.props.height === this.props.fullViewSize;
-    }
-    */
     isScrollableDown = () => {
         return this.props.isScrollableDown;
     }
@@ -54,12 +54,6 @@ export class ColumnSet extends React.Component {
     getHeight = () => {
         return this.props.height;
     }
-    /*
-    getGridHeight = () => {
-        const { fullViewSize, height } = this.props;
-        return height < fullViewSize ? height : fullViewSize;
-    }
-    */
     render() {
         console.log('columnset render(): columns: %s', this.props.columns.length);
         const { width, columns, columnWidth } = this.props;
@@ -74,7 +68,6 @@ export class ColumnSet extends React.Component {
 }
 
 const mapStateToProps = ({ columnset }) => {
-    console.log('mapStateToProps: columns: %s', columnset.columns.length);
     return {
         columns: columnset.columns,
         height: columnset.columns.length > 0 ? columnset.columns[0].getArea() : 0,

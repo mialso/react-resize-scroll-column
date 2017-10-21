@@ -15,6 +15,7 @@ class App extends Component {
             minTopHeight: 0,
             topCollapsed: true,
             topExpanded: false,
+            gridHeight: window.innerHeight - 300,
         };
     }
     componentDidMount() {
@@ -26,14 +27,14 @@ class App extends Component {
     }
     wheelListener = (e) => {
         if (e.deltaY > 0) {
-            return this.scrollDownHandler();
+            return this.scrollDownHandler(e);
         }
         if (e.deltaY < 0) {
-            return this.scrollUpHandler();
+            return this.scrollUpHandler(e);
         }
         return;
     }
-    scrollUpHandler = () => {
+    scrollUpHandler = (e) => {
         console.log('scroll up handler');
         if (this._columnset.isScrollableDown()) {
             /*
@@ -41,44 +42,48 @@ class App extends Component {
             // scroll grid
             this.props.columnsetScrollDown(SCROLL_SPEED);
             */
-            this._columnset.scrollDown(SCROLL_SPEED);
+            this._columnset.scrollHandler(e, SCROLL_SPEED);
         } else {
             // resize top
             const { topHeight, maxTopHeight } = this.state;
             // do nothing in case max top height
             if (topHeight >= maxTopHeight) return;
             const amountToResize = maxTopHeight - topHeight > SCROLL_SPEED ? SCROLL_SPEED : maxTopHeight - topHeight;
-            this.setState({ topHeight: topHeight + amountToResize });
+            this.setState({
+                topHeight: topHeight + amountToResize,
+                gridHeight: this.getGridHeight(topHeight + amountToResize),
+            });
             // resize grid
             //this.props.columnsetResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
-            this._columnset.resizeDown(this.getGridHeight(topHeight + amountToResize));
+            //this._columnset.resizeDown(this.getGridHeight(topHeight + amountToResize));
         }
     }
-    scrollDownHandler = () => {
+    scrollDownHandler = (e) => {
         console.log('scroll down handler');
         const { topHeight } = this.state;
         if (topHeight > 0) {
             if (topHeight > SCROLL_SPEED) {
                 // we may resize all amount
-                this.setState({ topHeight: topHeight - SCROLL_SPEED });
+                this.setState({
+                    topHeight: topHeight - SCROLL_SPEED,
+                    gridHeight: this.getGridHeight(topHeight - SCROLL_SPEED),
+                });
                 //this.props.columnsetResizeDown({ height: this.getGridHeight(topHeight - SCROLL_SPEED) });
-                this._columnset.resizeDown(this.getGridHeight(topHeight - SCROLL_SPEED));
+                //this._columnset.resizeDown(this.getGridHeight(topHeight - SCROLL_SPEED));
             } else {
                 // will resize only for top available amount
-                this.setState({ topHeight: 0 });
+                this.setState({ topHeight: 0, gridHeight: this.getGridHeight() });
                 //this.props.columnsetResizeDown({ height: this.getGridHeight() });
-                this._columnset.resizeDown(this.getGridHeight());
+                //this._columnset.resizeDown(this.getGridHeight());
                 // TODO expose grid scroll
             }
-        } else {
-            if (this._columnset.isScrollableUp()) {
+        } else if (this._columnset.isScrollableUp()) {
                 // scroll grid
                 //this.props.columnsetScrollUp(SCROLL_SPEED);
-                this._columnset.scrollUp(SCROLL_SPEED);
-            } else {
-                //this.props.columnsetResizeUp({ height: this.props.currentGridHeight - SCROLL_SPEED });
-                this._columnset.resizeUp(this._columnset.getHeight() - SCROLL_SPEED);
-            }
+                this._columnset.scrollHandler(e, SCROLL_SPEED);
+        } else {
+            //this.props.columnsetResizeUp({ height: this.props.currentGridHeight - SCROLL_SPEED });
+            //this._columnset.resizeUp(this._columnset.getHeight() - SCROLL_SPEED);
         }
     }
     getGridHeight = (topHeight = 0) => {
@@ -88,15 +93,25 @@ class App extends Component {
         this._columnset = columnset;
     }
     expandTop = () => {
-        this.setState({ topHeight: 500, maxTopHeight: 500, topExpanded: true, topCollapsed: false });
-        this._columnset.resizeDown(this.getGridHeight(500));
+        this.setState({
+            topHeight: 500,
+            gridHeight: this.getGridHeight(500),
+            maxTopHeight: 500,
+            topExpanded: true,
+            topCollapsed: false,
+        });
     }
     collapseTop = () => {
-        this.setState({ topHeight: 300, maxTopHeight: 300, topExpanded: false, topCollapsed: true });
-        this._columnset.resizeDown(this.getGridHeight(300));
+        this.setState({
+            topHeight: 300,
+            gridHeight: this.getGridHeight(300),
+            maxTopHeight: 300,
+            topExpanded: false,
+            topCollapsed: true,
+        });
     }
     render() {
-        const { topHeight, maxTopHeight, topExpanded, topCollapsed } = this.state;
+        const { topHeight, gridHeight, maxTopHeight, topExpanded, topCollapsed } = this.state;
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
@@ -106,11 +121,12 @@ class App extends Component {
                 </div>
                 <ColumnSet
                     refColumnset={this.refColumnset}
+                    //addScrollHandler={this.addScrollHandler}
                     width={500}
-                    columnWidth={150}
-                    initialHeight={window.innerHeight - topHeight}
+                    columnWidth={350}
+                    makeHeight={gridHeight}
                     fullViewSize={window.innerHeight}
-                    data={this.props.items}
+                    data={this.props.largeItems}
                     //columns={this.props.columns}
                 />
             </div>
@@ -121,6 +137,7 @@ class App extends Component {
 const mapStateToProps = ({ items, columnset }) => {
     return {
         items: items.items,
+        largeItems: items.largeItems,
         //columns: columnset.columns,
     };
 };

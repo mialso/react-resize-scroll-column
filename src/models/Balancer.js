@@ -60,9 +60,9 @@ TopBalancer.prototype.updateFromMain = function(addMargin = true) {
     });
 }
 TopBalancer.prototype.updateFromData = function() {
-    this.moveItemToMain();
+    //this.moveItemToMain();
     // in case no more data available - set balancer to empty item
-    if (!this.source.top.isDataAvailable()) return this.update();
+    if (!this.source.top.isDataAvailable()) return this.update(emptyItem);
     const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.top.get();
     this.update({ itemData: nextItem });
 }
@@ -104,9 +104,9 @@ BottomBalancer.prototype.updateFromMain = function(addMargin = true) {
     });
 }
 BottomBalancer.prototype.updateFromData = function() {
-    this.moveItemToMain();
+    //this.moveItemToMain();
     // in case no more data available - set balancer to empty item
-    if (!this.source.bottom.isDataAvailable()) return this.update();
+    if (!this.source.bottom.isDataAvailable()) return this.update(emptyItem);
     const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.bottom.get();
     if (this.type === nextItem.type) debugger;
     //const nextItem = this.source.bottom.get();
@@ -160,6 +160,7 @@ Balancer.prototype.expand = function(size) {
             const toResize = viewResizeAvailable > size ? size : viewResizeAvailable;
             this.viewArea += toResize;
         } else {
+            this.moveItemToMain();
             this.updateFromData();
         }
     } else {
@@ -182,7 +183,7 @@ Balancer.prototype.update = function({ itemData, initViewArea }) {
         {
             initViewArea,
             itemData,
-            version: this.version,
+            version: this.version += 1,
             topSource: this.source.top,
             bottomSource: this.source.bottom,
             dividerSource: this.source.divider,
