@@ -46,17 +46,39 @@ class App extends Component {
     componentWillUnmount() {
         window.removeEventListener('wheel', this.wheelListener);
     }
+    scrollAmount = 0;
+    ticking = false;
+
     wheelListener = (e) => {
         if (e.deltaY > 0) {
-            return this.scrollDownHandler(e);
+            this.scrollAmount -= 1;
+            
+            //return this.scrollDownHandler(e);
         }
         if (e.deltaY < 0) {
-            return this.scrollUpHandler(e);
+            this.scrollAmount += 1;
+            //return this.scrollUpHandler(e);
         }
+        this.handleScrolling(this);
         return;
     }
-    scrollUpHandler = (e) => {
-        e.preventDefault();
+    handleTicking = (g) => {
+        if (!g.ticking) {
+            requestAnimationFrame(() => {
+                g.handleScrolling();
+                g.ticking = false;
+            });
+        }
+        g.ticking = true;
+    }
+    handleScrolling = () => {
+        this.scrollAmount > 0
+            ? this.scrollUpHandler(this.scrollAmount)
+            : this.scrollDownHandler(-this.scrollAmount);
+        this.scrollAmount = 0;
+    }
+    scrollUpHandler = (amount) => {
+        //e.preventDefault();
         console.log('scroll up handler');
         if (this._columnset.isScrollableDown()) {
             /*
@@ -64,13 +86,14 @@ class App extends Component {
             // scroll grid
             this.props.columnsetScrollDown(SCROLL_SPEED);
             */
-            this._columnset.scrollHandler(e, SCROLL_SPEED);
+            this._columnset.scrollHandler(SCROLL_SPEED * amount, 'down');
         } else {
             // resize top
             const { topHeight, maxTopHeight } = this.state;
             // do nothing in case max top height
             if (topHeight >= maxTopHeight) return;
-            const amountToResize = maxTopHeight - topHeight > SCROLL_SPEED ? SCROLL_SPEED : maxTopHeight - topHeight;
+            const toScroll = SCROLL_SPEED * amount;
+            const amountToResize = maxTopHeight - topHeight > toScroll ? toScroll : maxTopHeight - topHeight;
             this.setState({
                 topHeight: topHeight + amountToResize,
                 gridHeight: this.getGridHeight(topHeight + amountToResize),
@@ -80,16 +103,17 @@ class App extends Component {
             //this._columnset.resizeDown(this.getGridHeight(topHeight + amountToResize));
         }
     }
-    scrollDownHandler = (e) => {
-        e.preventDefault();
+    scrollDownHandler = (amount) => {
+        //e.preventDefault();
         console.log('scroll down handler');
         const { topHeight } = this.state;
+        const toScroll = amount * SCROLL_SPEED;
         if (topHeight > 0) {
-            if (topHeight > SCROLL_SPEED) {
+            if (topHeight > toScroll) {
                 // we may resize all amount
                 this.setState({
-                    topHeight: topHeight - SCROLL_SPEED,
-                    gridHeight: this.getGridHeight(topHeight - SCROLL_SPEED),
+                    topHeight: topHeight - toScroll,
+                    gridHeight: this.getGridHeight(topHeight - toScroll),
                 });
                 //this.props.columnsetResizeDown({ height: this.getGridHeight(topHeight - SCROLL_SPEED) });
                 //this._columnset.resizeDown(this.getGridHeight(topHeight - SCROLL_SPEED));
@@ -103,7 +127,7 @@ class App extends Component {
         } else if (this._columnset.isScrollableUp()) {
                 // scroll grid
                 //this.props.columnsetScrollUp(SCROLL_SPEED);
-                this._columnset.scrollHandler(e, SCROLL_SPEED);
+                this._columnset.scrollHandler(toScroll, 'up');
         } else {
             //this.props.columnsetResizeUp({ height: this.props.currentGridHeight - SCROLL_SPEED });
             //this._columnset.resizeUp(this._columnset.getHeight() - SCROLL_SPEED);

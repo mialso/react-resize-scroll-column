@@ -39,11 +39,10 @@ export class ColumnSet extends React.Component {
     getMyMeta() {
         return { id: this.props.id };
     }
-    scrollHandler = (e, amount) => {
-        if (e.deltaY > 0) {
+    scrollHandler = (amount, dir) => {
+        if (dir === 'up') {
             return this.props.columnsetScrollUp(amount, this.getMyMeta());
-        }
-        if (e.deltaY < 0) {
+        } else {
             return this.props.columnsetScrollDown(amount, this.getMyMeta());
         }
         return;
