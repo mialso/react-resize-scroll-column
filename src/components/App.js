@@ -23,8 +23,8 @@ class App extends Component {
     }
 
     wheelListener = (e) => {
-        if (e.deltaY > 0) return this.scrollDownHandler();//props.scrollDown();
-        if (e.deltaY < 0) return this.scrollUpHandler();//props.scrollUp();
+        if (e.deltaY > 0) return this.scrollUpHandler();//props.scrollDown();
+        if (e.deltaY < 0) return this.scrollDownHandler();//props.scrollUp();
         return;
     }
     componentDidMount() {
@@ -40,9 +40,9 @@ class App extends Component {
             this.props.gridSetDataUpdate({ dataArray: newProps.items });
         }
     }
-    scrollUpHandler = () => {
-        console.log('scroll down handler');
-        if (this.props.isGridScrollableUp) {
+    scrollDownHandler = () => {
+        console.log('scroll up handler');
+        if (this.props.isGridScrollableDown) {
             console.log('scroll up handler: grid is scrollable');
             // scroll grid
             this.props.gridSetScrollDown(SCROLL_SPEED);
@@ -57,7 +57,7 @@ class App extends Component {
             this.props.gridSetResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
         }
     }
-    scrollDownHandler = () => {
+    scrollUpHandler = () => {
         console.log('scroll down handler');
         const { topHeight } = this.state;
         if (topHeight > 0) {

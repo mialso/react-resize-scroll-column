@@ -33,11 +33,11 @@ export default function Column({ topDataSource, bottomDataSource, fixHandler }) 
 }
 
 Column.prototype.isScrollableDown = function() {
-    return this.source.bottom.isDataAvailable() || !this.balancer.bottom.isFullView();
+    return this.source.top.isDataAvailable() || !this.balancer.top.isFullView();
 }
 
 Column.prototype.isScrollableUp = function() {
-    return this.source.top.isDataAvailable() || !this.balancer.top.isFullView();
+    return this.source.bottom.isDataAvailable() || !this.balancer.bottom.isFullView();
 }
 
 Column.prototype.addToSource = function({ type, dataArray }) {
@@ -94,11 +94,13 @@ Column.prototype.resizeBottom = function(newSize) {
 }
 
 Column.prototype.scrollUp = function(size) {
+    if (!this.isScrollableUp()) return this;
     const currentArea = this.getArea();
-    return this.resizeTop(currentArea - size).resizeBottom(currentArea);
+    return this.resizeBottom(currentArea + size).resizeTop(currentArea);
 }
 
 Column.prototype.scrollDown = function(size) {
+    if (!this.isScrollableDown()) return this;
     const currentArea = this.getArea();
     return this.resizeTop(currentArea + size).resizeBottom(currentArea);
 }
