@@ -1,5 +1,3 @@
-import { COLUMN_PAD } from '../constants/grid';
-
 const emptyItem = {
     size: 0,
     data: { text: '' },
@@ -35,7 +33,8 @@ export function Balancer({ itemData, initViewArea, topSource, bottomSource, vers
         bottom: bottomSource,
         divider: dividerSource,
     };
-    this.version = version || 0;
+    this.contentPosition = 0;
+    this.version = Number.isInteger(version) ? version : 0;
 }
 
 Balancer.prototype = Object.create(Item.prototype);
@@ -121,11 +120,6 @@ Balancer.prototype.getSize = function() {
 
 Balancer.prototype.getViewSize = function() {
     return this.viewArea < this.size ? this.viewArea : this.size;
-}
-
-Balancer.prototype.isScrollable = function(scrollSize) {
-    const newViewArea = this.viewArea + scrollSize;
-    return newViewArea > 0 && newViewArea < this.size + COLUMN_PAD;
 }
 
 Balancer.prototype.isFullView = function() {

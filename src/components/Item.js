@@ -34,6 +34,8 @@ export function BalancerItem({ data, applyStyle, applyClass, childData, viewData
             data: data.data,
             id: `${childData.props ? childData.props.idPrefix : ''}_${applyClass}`,
             makeHeight: viewData ? viewData.viewArea : 0,
+            contentScroll: viewData ? viewData.contentPosition : 0,
+            stateHandler: data.scrollableStateUpdateHander,
         },
         childData.props,
     );

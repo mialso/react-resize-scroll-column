@@ -26,7 +26,7 @@ export class ColumnSet extends React.Component {
         if (newProps.data !== this.props.data) {
             this.props.columnsetDataUpdate({ data: newProps.data, isSet: this.props.isSet }, this.getMyMeta());
         }
-        if (newProps.contentScroll !== this.props.contentScroll) {
+        if (Number.isInteger(newProps.contentScroll) && newProps.contentScroll !== this.props.contentScroll) {
             this.props.columnsetScroll({ contentPosition: newProps.contentScroll }, this.getMyMeta());
         }
         if (newProps.makeHeight !== this.props.makeHeight) {
@@ -37,6 +37,12 @@ export class ColumnSet extends React.Component {
                 this.props.columnsetResizeDown({ height: newProps.makeHeight }, this.getMyMeta());
             }
         }
+        // let anybody else know about my state
+        this.props.stateHandler({
+            height: newProps.height,
+            isScrollableUp: newProps.isScrollableUp,
+            isScrollableDown: newProps.isScrollableDown,
+        });
     }
     componentWillUnmount() {
     }

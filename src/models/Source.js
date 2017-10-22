@@ -79,7 +79,7 @@ GridSetTopSource.prototype.constructor = GridSetTopSource;
 GridSetTopSource.prototype.get = function() {
     const item = this._data.pop();
     this.inViewSource.push(item);
-    return mutateInstance(item);
+    return item;
 }
 
 export function GridSetBottomSource(dataArray, inViewSource) {
@@ -92,7 +92,7 @@ GridSetBottomSource.prototype.get = function() {
     const item = this._data.shift();
     if (!item) return undefined;
     this.inViewSource.push(item);
-    return mutateInstance(item);
+    return item;
 }
 
 export function GridSetSource(dataArray) {

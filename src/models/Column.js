@@ -113,11 +113,16 @@ Column.prototype.scrollUp = function(size) {
         //debugger; 
         const ableToScroll = currentArea - this.balancer.bottom.viewArea;
         // TODO this is dirty thing "-1" to prevent balancer move to main
-        this.resizeBottom(currentArea + ableToScroll - 1).resizeTop(currentArea);
+        ableToScroll && this.resizeBottom(currentArea + ableToScroll - 1).resizeTop(currentArea);
         
-        if (this.balancer.bottom.type === 'scrollable' && this.balancer.top.scroll) {
+        if (this.balancer.bottom.type === 'scrollable' && this.balancer.bottom._raw.isScrollableUp) {
             // pass scroll to inner item
-            debugger;
+            this.balancer.bottom.contentPosition -= size;
+            // set balancer size according to current height
+            this.balancer.bottom._raw.size = this.balancer.bottom._raw.height;
+            this.balancer.bottom.version += 1;
+            this.version += 1;
+            return this;
         } else {
             // move balancer to top
             this.balancer.top.update({

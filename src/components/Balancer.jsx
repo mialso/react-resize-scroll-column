@@ -10,12 +10,12 @@ export class Balancer extends React.Component {
     render() {
         const { data, type, children } = this.props;
         const style = {
-            height: data.getViewSize(),
+            height: data.getSize(),
             display: data.getSize() > 0 ? 'block' : 'none',
             overflow: 'hidden',
         };
         const childStyle = {
-            marginTop: type === 'top' ? data.viewArea - data.size : 0,
+            marginTop: type === 'top' && data.type !== 'scrollable' ? data.viewArea - data.size : 0,
             //overflow: type === 'bottom' ? 'hidden' : 'visible',
         };
         return (

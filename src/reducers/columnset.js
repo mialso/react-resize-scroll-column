@@ -14,16 +14,28 @@ function prepareFromArray(dataArray) {
     return parseItems(dataArray);
 }
 
+function scrollableStateUpdateHander(scrollableState) {
+    this.height = scrollableState.height;
+    this.isScrollableDown = scrollableState.isScrollableDown;
+    this.isScrollableUp = scrollableState.isScrollableUp;
+}
+
+
 function prepareFromObject(dataObject) {
     return Object.keys(dataObject).map((key, index) => {
-        if (!Array.isArray(dataObject[key])) return;
-        return {
+        const scrollableItem = {
             size: 10000,
-            data: dataObject[key],
+            data: Array.isArray(dataObject[key]) ? dataObject[key] : [],
             renderClass: `Car_${key}`,
             index,
             type: 'scrollable',
+            height: 0,
+            isScrollableUp: false,
+            isScrollableDown: false,
         };
+        scrollableItem.scrollableStateUpdateHander = scrollableStateUpdateHander.bind(scrollableItem);
+
+        return scrollableItem;
     });
 }
 function parseItems(items) {
@@ -54,12 +66,14 @@ function calculateCarSize(car) {
 }
 
 const initialState = { 
+    id: '',
     height: 0,
     width: 0,
     columnWidth: 150,
     source: {},
     columns: [],
     contentPosition: 0,
+    initialized: false,
 }
 export default function reducer(state = {}, action) {
     if (!(action && action.meta)) return state;
@@ -85,16 +99,24 @@ function columnsetReducer(state = initialState, action) {
     switch (action.type) {
         case COLUMNSET_INIT_HEIGHT: {
             if (!action.payload) return state;
-            const { height, width, columnWidth } = action.payload;
+            const { height, width, columnWidth, id } = action.payload;
+            if (state.initialized) {
+                return Object.assign({}, state, { height });
+            }
             return Object.assign({}, state, {
+                id,
                 height: Number.isInteger(height) ? height : 0,
                 width: Number.isInteger(width) ? width : 0,
                 columnWidth: Number.isInteger(columnWidth) ? columnWidth : 0,
                 source: new GridSetSource([]),
+                initialized: true,
             });
         }
         case COLUMNSET_DATA_UPDATE: {
             const { data, isSet = false } = action.payload;
+
+            if(typeof state.source.isDataAvailable() === 'function') return state;
+
             if (!Array.isArray(data) && !isSet) return state;
             // init new set with data
             // calculate columns number
