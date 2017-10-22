@@ -50,6 +50,7 @@ Column.prototype.addToSource = function({ type, dataArray }) {
 
 Column.prototype.resize = function(balancer, newSize) {
     let counter = 0;
+    // TODO guard in case recursive empty resize: if (balancer.type === 'empty') return this;
     while (this.getArea() !== newSize) {
         if (++counter > 40) {
             debugger;
@@ -114,7 +115,7 @@ Column.prototype.scrollUp = function(size) {
         // TODO this is dirty thing "-1" to prevent balancer move to main
         this.resizeBottom(currentArea + ableToScroll - 1).resizeTop(currentArea);
         
-        if (this.balancer.bottom.type === 'scrollable') {
+        if (this.balancer.bottom.type === 'scrollable' && this.balancer.top.scroll) {
             // pass scroll to inner item
             debugger;
         } else {
@@ -141,7 +142,7 @@ Column.prototype.scrollDown = function(size) {
         const ableToScroll = currentArea - this.balancer.top.viewArea;
         this.resizeTop(currentArea + ableToScroll - 1).resizeBottom(currentArea);
         
-        if (this.balancer.top.type === 'scrollable') {
+        if (this.balancer.top.type === 'scrollable' && this.balancer.top.scroll) {
             // pass scroll to inner item
             debugger;
         } else {

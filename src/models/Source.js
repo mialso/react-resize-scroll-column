@@ -90,6 +90,7 @@ GridSetBottomSource.prototype = Object.create(TopSource.prototype);
 GridSetBottomSource.prototype.constructor = GridSetBottomSource;
 GridSetBottomSource.prototype.get = function() {
     const item = this._data.shift();
+    if (!item) return undefined;
     this.inViewSource.push(item);
     return mutateInstance(item);
 }

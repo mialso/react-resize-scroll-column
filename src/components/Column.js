@@ -1,5 +1,6 @@
 import React from 'react';
 import { Item, BalancerItem } from './Item';
+import { Balancer } from './Balancer';
 
 import './Column.css';
 
@@ -12,27 +13,27 @@ export default class Column extends React.Component {
     }
     render() {
         console.log('column render()');
-        const { width, column, childData } = this.props;
+        const { width, column, childData, divider } = this.props;
         const topBalancer = column.balancer.top;
         const bottomBalancer = column.balancer.bottom;
         const height = column.getArea();
         return (
-            <div className="Grid" style={{ width, height }}>
-                <BalancerItem data={topBalancer} type="top" version={topBalancer.version}>
-                    <Item childData={childData} />
-                </BalancerItem>
+            <div className="Column" style={{ width, height }}>
+                <Balancer data={topBalancer} type="top" version={topBalancer.version}>
+                    <BalancerItem childData={childData} divider={divider}/>
+                </Balancer>
                 {
                     column._main.map((item, index) => 
                         <Item
                             key={index}
                             data={item}
                             applyClass={item.renderClass}
-                            childData={childData}
+                            Renderer={item.type === 'divider' ? divider.renderer : childData.renderer}
                         />)
                 }
-                <BalancerItem data={bottomBalancer} type="bottom" version={bottomBalancer.version}>
-                    <Item childData={childData} />
-                </BalancerItem>
+                <Balancer data={bottomBalancer} type="bottom" version={bottomBalancer.version}>
+                    <BalancerItem childData={childData} divider={divider}/>
+                </Balancer>
             </div>
         );
     }

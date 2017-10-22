@@ -28,8 +28,8 @@ function generateCarItems(number) {
     for (let i = 0; i < number; ++i) {
         const newItem = {
             photoHeight: Number.parseInt(Math.random() * 150, 10) + 50,
-            year: Number.parseInt(Math.random() * 70, 10) + 1945,
-            horsePower: Number.parseInt(Math.random() * 20, 10) + 80,
+            year: Number.parseInt(Math.random() * 67, 10) + 1950,
+            horsePower: Number.parseInt(Math.random() * 200, 10) + 80,
             id: i,
         };
         items.push(newItem);
@@ -54,7 +54,17 @@ export default (state = initialState, action) => {
                 generateItems(3, '13', 50, 200),
                 generateItems(15, '14', 50, 200),
             ];
-            state.cars = generateCarItems(20);
+            state.cars = generateCarItems(100);
+            state.yearCars = {
+                '50s': state.cars.filter(car => car.year >= 1950 && car.year < 1960),
+                '60s': state.cars.filter(car => car.year >= 1960 && car.year < 1970),
+                '70s': state.cars.filter(car => car.year >= 1970 && car.year < 1980),
+                '80s': state.cars.filter(car => car.year >= 1980 && car.year < 1990),
+                '90s': state.cars.filter(car => car.year >= 1990 && car.year < 2000),
+                '2000s': state.cars.filter(car => car.year >= 2000 && car.year < 2010),
+                '2010s': state.cars.filter(car => car.year >= 2010 && car.year < 2020),
+            };
+
             return Object.assign({}, state);
         }
         default: return state;

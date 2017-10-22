@@ -7,6 +7,7 @@ const emptyItem = {
 };
 
 export function Item(data = emptyItem) {
+    if (!Number.isInteger(data.size)) throw new Error(`Item(): wrong size: ${data.size}`);
     this.size = data.size;
     /*
     this.data = {
@@ -63,7 +64,7 @@ TopBalancer.prototype.updateFromData = function() {
     //this.moveItemToMain();
     // in case no more data available - set balancer to empty item
     if (!this.source.top.isDataAvailable()) return this.update(emptyItem);
-    const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.top.get();
+    const nextItem = (this.type === 'item' || this.type === 'scrollable') ? this.source.divider.get() : this.source.top.get();
     this.update({ itemData: nextItem });
 }
 TopBalancer.prototype.moveItemToData = function() {
@@ -107,8 +108,8 @@ BottomBalancer.prototype.updateFromData = function() {
     //this.moveItemToMain();
     // in case no more data available - set balancer to empty item
     if (!this.source.bottom.isDataAvailable()) return this.update(emptyItem);
-    const nextItem = this.type === 'item' ? this.source.divider.get() : this.source.bottom.get();
-    if (this.type === nextItem.type) debugger;
+    const nextItem = (this.type === 'item' || this.type === 'scrollable') ? this.source.divider.get() : this.source.bottom.get();
+    //if (this.type === nextItem.type) debugger;
     //const nextItem = this.source.bottom.get();
     this.update({ itemData: nextItem, version: this.version + 1 });
 }

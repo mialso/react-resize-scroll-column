@@ -16,13 +16,20 @@
 
 .ColumnSet {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
+}
+
+.ColumnSet .Column {
+    width: 150px;
 }
 
 .Column {
-    width: 150px;
     background: grey;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+.Car {
+    background: purple;
 }

@@ -9,8 +9,32 @@ import {
 import Column from '../models/Column';
 import { GridSetSource } from '../models/Source';
 
-function prepareGridSetData(dataArray) {
+function prepareFromArray(dataArray) {
     return parseItems(dataArray);
+}
+
+function prepareFromObject(dataObject) {
+    return Object.keys(dataObject).map((key, index) => {
+        if (!Array.isArray(dataObject[key])) return;
+        return {
+            size: 10000,
+            data: dataObject[key],
+            renderClass: `Car_${key}`,
+            index,
+            type: 'scrollable',
+        };
+    });
+}
+function parseItems(items) {
+    return items.map((item, index) => {
+        return {
+            size: calculateCarSize(item),
+            data: item,
+            renderClass: 'G-Item',
+            index,
+            type: 'item',
+        };
+    });
 }
 
 function fixHandler(size) {
@@ -28,23 +52,11 @@ function calculateCarSize(car) {
     return 30 + 30 + car.photoHeight;
 }
 
-function parseItems(items) {
-    return items.map((item, index) => {
-        return {
-            size: calculateCarSize(item),
-            data: item,
-            renderClass: 'G-Item',
-            index,
-            type: 'item',
-        };
-    });
-}
-
 const initialState = { 
     height: 0,
     width: 0,
     columnWidth: 150,
-    source: new GridSetSource([]),
+    source: {},
     columns: [],
 }
 export default function reducer(state = {}, action) {
@@ -76,17 +88,19 @@ function columnsetReducer(state = initialState, action) {
                 height: Number.isInteger(height) ? height : 0,
                 width: Number.isInteger(width) ? width : 0,
                 columnWidth: Number.isInteger(columnWidth) ? columnWidth : 0,
+                source: new GridSetSource([]),
             });
         }
         case COLUMNSET_DATA_UPDATE: {
-            const { dataArray } = action.payload;
-            if (!Array.isArray(dataArray)) return state;
+            const { data, isSet = false } = action.payload;
+            if (!Array.isArray(data) && !isSet) return state;
             // init new set with data
             // calculate columns number
             const columnsNumber = calculateSetColumns(state);
             if (!columnsNumber) return state;
             // init data source
-            state.source.addData(prepareGridSetData(dataArray));
+            //debugger;
+            state.source.addData(isSet ? prepareFromObject(data) : prepareFromArray(data));
             // create columns
             const columns = [];
             for (let i = 0; i < columnsNumber; ++i) {

@@ -20,10 +20,13 @@ export class ColumnSet extends React.Component {
             width: this.props.width,
             columnWidth: this.props.columnWidth,
         }, this.getMyMeta());
+        if (this.props.data) {
+            this.props.columnsetDataUpdate({ data: this.props.data, isSet: this.props.isSet }, this.getMyMeta());
+        }
     }
     componentWillReceiveProps(newProps) {
-        if (Array.isArray(newProps.data) && (newProps.data !== this.props.data)) {
-            this.props.columnsetDataUpdate({ dataArray: newProps.data }, this.getMyMeta());
+        if (newProps.data !== this.props.data) {
+            this.props.columnsetDataUpdate({ data: newProps.data, isSet: this.props.isSet }, this.getMyMeta());
         }
         if (newProps.makeHeight !== this.props.makeHeight) {
             if (!this.isScrollableUp()) {

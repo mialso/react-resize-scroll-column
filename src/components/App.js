@@ -159,6 +159,7 @@ class App extends Component {
     }
     render() {
         const { topHeight, gridHeight, maxTopHeight, topExpanded, topCollapsed } = this.state;
+        /*
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
@@ -170,12 +171,53 @@ class App extends Component {
                     id="first"
                     refColumnset={this.refColumnset}
                     //addScrollHandler={this.addScrollHandler}
-                    width={500}
-                    columnWidth={150}
+                    width={600}
+                    columnWidth={180}
                     makeHeight={gridHeight}
                     fullViewSize={window.innerHeight}
                     data={this.props.cars}
-                    childData={{ renderer: Car, getSize: calculateCarSize }}
+                    childData={{
+                        renderer: Car,
+                        getSize: calculateCarSize,
+                    }}
+                    divider={{ renderer: Divider, size: 20 }}
+                />
+            </div>
+        );
+        */
+        return (
+            <div className="App">
+                <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
+                    TOP
+                    <button onClick={this.expandTop} disabled={topExpanded}>Expand</button>
+                    <button onClick={this.collapseTop} disabled={topCollapsed}>Collapse</button>
+                </div>
+                <ColumnSet
+                    id="first"
+                    isSet
+                    refColumnset={this.refColumnset}
+                    //addScrollHandler={this.addScrollHandler}
+                    width={600}
+                    columnWidth={500}
+                    makeHeight={gridHeight}
+                    fullViewSize={window.innerHeight}
+                    data={this.props.yearCars}
+                    childData={{
+                        renderer: ColumnSet,
+                        getSize: calculateCarSize,
+                        props: {
+                            idPrefix: 'carsSet',
+                            width: 450,
+                            columnWidth: 130,
+                            childData: {
+                                renderer: Car,
+                            },
+                            divider: {
+                                renderer: Divider,
+                                size: 20,
+                            },
+                        },
+                    }}
                     divider={{ renderer: Divider, size: 20 }}
                 />
             </div>
@@ -189,6 +231,7 @@ const mapStateToProps = ({ items, columnset }) => {
         largeItems: items.large,
         itemsByDate: items.byDate,
         cars: items.cars,
+        yearCars: items.yearCars,
         //columns: columnset.columns,
     };
 };

@@ -10,51 +10,39 @@ function Card({ data, childStyle }) {
     );
 }
 
-export function Item({ data, applyStyle, applyClass, childData }) {
+export function Item({ data, applyStyle, applyClass, Renderer }) {
     const height = data.size;
     const style = Object.assign({}, applyStyle, { height });
-    const renderItem = data.type === 'item' && typeof  childData.renderer === 'function';
+    const itemData = data.data || {};
+    const itemClass = `Item ${applyClass}`;
     return (
-        <div className={`Item ${applyClass}`} style={style}>
-            { renderItem ? <childData.renderer data={data.data} /> : <Card data={data} /> }
+        <div className={itemClass} style={style}>
+            { Renderer ? <Renderer data={itemData}/> : <Card data={data} /> }
         </div>
     );
 }
 
-export class BalancerItem extends React.Component {
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.version !== this.props.version) {
-            return true;
-        }
-        return false;
-    }
-    render() {
-        const { data, type, children } = this.props;
-        const style = {
-            height: data.getViewSize(),
-            display: data.getSize() > 0 ? 'block' : 'none',
-            overflow: 'hidden',
-        };
-        const childStyle = {
-            marginTop: type === 'top' ? data.viewArea - data.size : 0,
-            //overflow: type === 'bottom' ? 'hidden' : 'visible',
-        };
-        return (
-            <div className="BalancerItem" style={style}>
-                {
-                    React.Children.map(
-                        children,
-                        child => React.cloneElement(
-                            child,
-                            {
-                                applyStyle: childStyle,
-                                applyClass: data._raw.renderClass,
-                                data: data._raw,
-                            }
-                        ),
-                    )
-                }
-            </div>
-        );
-    }
+export function BalancerItem({ data, applyStyle, applyClass, childData, viewData, divider }) {
+    const height = data.size;
+    const style = Object.assign({}, applyStyle, { height });
+    const renderItem = data.type && data.type !== 'empty' && childData && typeof childData.renderer === 'function';
+    if (!renderItem) return null;
+
+    const childProps = Object.assign(
+        {
+            data: data.data,
+            id: `${childData.props ? childData.props.idPrefix : ''}_${applyClass}`,
+            makeHeight: viewData ? viewData.viewArea : 0,
+        },
+        childData.props,
+    );
+
+    const Renderer = data.type === 'divider' ? divider.renderer : childData.renderer;
+    const itemClass = `Item ${applyClass}`;
+
+    return (
+        <div className={itemClass} style={style}>
+            <Renderer {...childProps} />
+        </div>
+    );
 }
