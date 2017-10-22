@@ -19,7 +19,9 @@ function Car(props) {
 
 function Divider() {
     return (
-        <div className="Car-divider" style={{ width: '100%', height: 20 }}></div>
+        <div className="Car-divider" style={{ width: '100%', height: 20 }}>
+            divider
+        </div>
     );
 }
 
@@ -115,13 +117,14 @@ class App extends Component {
         } else {
             //this.props.columnsetResizeUp({ height: this.props.currentGridHeight - SCROLL_SPEED });
             //this._columnset.resizeUp(this._columnset.getHeight() - SCROLL_SPEED);
+            this.setState({ gridHeight: this.state.gridHeight - toScroll });
         }
     }
     getGridHeight = (topHeight = 0) => {
         return window.innerHeight - topHeight;
     }
     isGridFullView = () => {
-        return this._gridState.height === Number.parseInt(window.innerHeight);
+        return this._gridState.height === Number.parseInt(window.innerHeight) && this._gridState.isFullView;
     }
     gridStateHandler = (gridState) => {
         this._gridState = gridState;
@@ -146,7 +149,6 @@ class App extends Component {
     }
     render() {
         const { topHeight, gridHeight, maxTopHeight, topExpanded, topCollapsed, gridContentScroll } = this.state;
-        /*
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
@@ -161,7 +163,7 @@ class App extends Component {
                     makeHeight={gridHeight}
                     contentScroll={gridContentScroll}
                     fullViewSize={window.innerHeight}
-                    data={this.props.cars}
+                    data={this.props.yearCars50}
                     stateHandler={this.gridStateHandler}
                     childData={{
                         renderer: Car,
@@ -169,41 +171,18 @@ class App extends Component {
                     }}
                     divider={{ renderer: Divider, size: 20 }}
                 />
-            </div>
-        );
-        */
-        return (
-            <div className="App">
-                <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
-                    TOP
-                    <button onClick={this.expandTop} disabled={topExpanded}>Expand</button>
-                    <button onClick={this.collapseTop} disabled={topCollapsed}>Collapse</button>
-                </div>
+                <Divider />
                 <ColumnSet
-                    id="first"
-                    isSet
+                    id="second"
                     width={600}
-                    columnWidth={500}
-                    makeHeight={gridHeight}
-                    contentScroll={gridContentScroll}
-                    fullViewSize={window.innerHeight}
-                    data={this.props.yearCars}
-                    stateHandler={this.gridStateHandler}
+                    columnWidth={180}
+                    makeHeight={0}
+                    contentScroll={() => {}}
+                    data={this.props.yearCars60}
+                    stateHandler={() => {}}
                     childData={{
-                        renderer: ColumnSet,
+                        renderer: Car,
                         getSize: calculateCarSize,
-                        props: {
-                            idPrefix: 'carsSet',
-                            width: 450,
-                            columnWidth: 130,
-                            childData: {
-                                renderer: Car,
-                            },
-                            divider: {
-                                renderer: Divider,
-                                size: 20,
-                            },
-                        },
                     }}
                     divider={{ renderer: Divider, size: 20 }}
                 />
@@ -218,7 +197,8 @@ const mapStateToProps = ({ items, columnset }) => {
         largeItems: items.large,
         itemsByDate: items.byDate,
         cars: items.cars,
-        yearCars: items.yearCars,
+        yearCars50: items.yearCars ? items.yearCars['50s'] : [],
+        yearCars60: items.yearCars ? items.yearCars['60s'] : [],
         //columns: columnset.columns,
     };
 };

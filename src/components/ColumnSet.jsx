@@ -18,7 +18,7 @@ export class ColumnSet extends React.Component {
             width: this.props.width,
             columnWidth: this.props.columnWidth,
         }, this.getMyMeta());
-        if (this.props.data) {
+        if (this.props.data && this.props.data.length > 0) {
             this.props.columnsetDataUpdate({ data: this.props.data, isSet: this.props.isSet }, this.getMyMeta());
         }
     }
@@ -30,10 +30,10 @@ export class ColumnSet extends React.Component {
             this.props.columnsetScroll({ contentPosition: newProps.contentScroll }, this.getMyMeta());
         }
         if (newProps.makeHeight !== this.props.makeHeight) {
-            if (!this.isScrollableUp()) {
+            if (this.isScrollableDown()) {
                 this.props.columnsetResizeUp({ height: newProps.makeHeight }, this.getMyMeta());
             }
-            if (!this.isScrollableDown()) {
+            if (this.isScrollableUp()) {
                 this.props.columnsetResizeDown({ height: newProps.makeHeight }, this.getMyMeta());
             }
         }
@@ -42,6 +42,7 @@ export class ColumnSet extends React.Component {
             height: newProps.height,
             isScrollableUp: newProps.isScrollableUp,
             isScrollableDown: newProps.isScrollableDown,
+            isFullView: newProps.isFullView,
         });
     }
     componentWillUnmount() {
@@ -85,6 +86,7 @@ const mapStateToProps = ({ columnset }, { id }) => {
         height: columnset[id] && columnset[id].columns.length > 0 ? columnset[id].columns[0].getArea() : 0,
         isScrollableDown: columnset[id] && columnset[id].columns.reduce((acc, col) => col.isScrollableDown() || acc, false),
         isScrollableUp: columnset[id] && columnset[id].columns.reduce((acc, col) => col.isScrollableUp() || acc, false),
+        isFullView: columnset[id] && !(columnset[id].source.top.isDataAvailable() && columnset[id].source.bottom.isDataAvailable()),
     };
 };
 
