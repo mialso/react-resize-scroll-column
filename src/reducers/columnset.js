@@ -5,6 +5,7 @@ import {
     COLUMNSET_DATA_UPDATE,
     COLUMNSET_RESIZE_UP,
     COLUMNSET_INIT_HEIGHT,
+    COLUMNSET_SCROLL,
 } from '../actions/columnset';
 import Column from '../models/Column';
 import { GridSetSource } from '../models/Source';
@@ -58,6 +59,7 @@ const initialState = {
     columnWidth: 150,
     source: {},
     columns: [],
+    contentPosition: 0,
 }
 export default function reducer(state = {}, action) {
     if (!(action && action.meta)) return state;
@@ -148,6 +150,23 @@ function columnsetReducer(state = initialState, action) {
                 return Object.assign({}, state, { height: newHeight });
             }
             return state;
+        }
+        case COLUMNSET_SCROLL: {
+            if (!(action.payload && typeof action.payload === 'object')) return state;
+            const newContentPosition = Number.parseInt(action.payload.contentPosition, 10);
+            if (!Number.isInteger(newContentPosition)) return state;
+            const scrollAmount = newContentPosition - state.contentPosition;
+            if (scrollAmount > 0) {
+                return Object.assign({}, state, {
+                    columns: state.columns.map(column => column.scrollDown(scrollAmount)),
+                    contentPosition: newContentPosition,
+                });
+            } else {
+                return Object.assign({}, state, {
+                    columns: state.columns.map(column => column.scrollUp(-scrollAmount)),
+                    contentPosition: newContentPosition,
+                });
+            }
         }
         case COLUMNSET_SCROLL_DOWN: {
             if (!action.payload) return state;

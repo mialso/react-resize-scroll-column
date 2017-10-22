@@ -11,13 +11,14 @@ function Card({ data, childStyle }) {
 }
 
 export function Item({ data, applyStyle, applyClass, Renderer }) {
+    if (!Renderer) return null;
     const height = data.size;
     const style = Object.assign({}, applyStyle, { height });
     const itemData = data.data || {};
     const itemClass = `Item ${applyClass}`;
     return (
         <div className={itemClass} style={style}>
-            { Renderer ? <Renderer data={itemData}/> : <Card data={data} /> }
+            <Renderer data={itemData}/>
         </div>
     );
 }

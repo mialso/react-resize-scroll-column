@@ -37,6 +37,7 @@ class App extends Component {
             topCollapsed: true,
             topExpanded: false,
             gridHeight: window.innerHeight - 300,
+            gridContentScroll: 0,
         };
     }
     componentDidMount() {
@@ -78,34 +79,22 @@ class App extends Component {
         this.scrollAmount = 0;
     }
     scrollUpHandler = (amount) => {
-        //e.preventDefault();
-        console.log('scroll up handler');
-        if (this._columnset.isScrollableDown()) {
-            /*
-            console.log('scroll up handler: grid is scrollable');
-            // scroll grid
-            this.props.columnsetScrollDown(SCROLL_SPEED);
-            */
-            this._columnset.scrollHandler(SCROLL_SPEED * amount, 'down');
+        const toScroll = SCROLL_SPEED * amount;
+        if (this.isGridFullView() && this.props.gridIsScrollableDown) {
+            this.setState({ gridContentScroll: this.state.gridContentScroll + toScroll });
         } else {
             // resize top
             const { topHeight, maxTopHeight } = this.state;
             // do nothing in case max top height
             if (topHeight >= maxTopHeight) return;
-            const toScroll = SCROLL_SPEED * amount;
             const amountToResize = maxTopHeight - topHeight > toScroll ? toScroll : maxTopHeight - topHeight;
             this.setState({
                 topHeight: topHeight + amountToResize,
                 gridHeight: this.getGridHeight(topHeight + amountToResize),
             });
-            // resize grid
-            //this.props.columnsetResizeDown({ height: this.getGridHeight(topHeight + amountToResize) });
-            //this._columnset.resizeDown(this.getGridHeight(topHeight + amountToResize));
         }
     }
     scrollDownHandler = (amount) => {
-        //e.preventDefault();
-        console.log('scroll down handler');
         const { topHeight } = this.state;
         const toScroll = amount * SCROLL_SPEED;
         if (topHeight > 0) {
@@ -124,10 +113,9 @@ class App extends Component {
                 //this._columnset.resizeDown(this.getGridHeight());
                 // TODO expose grid scroll
             }
-        } else if (this._columnset.isScrollableUp()) {
-                // scroll grid
-                //this.props.columnsetScrollUp(SCROLL_SPEED);
-                this._columnset.scrollHandler(toScroll, 'up');
+        } else if (this.isGridFullView() && this.props.gridIsScrollableUp) {
+            // scroll grid
+            this.setState({ gridContentScroll: this.state.gridContentScroll - toScroll });
         } else {
             //this.props.columnsetResizeUp({ height: this.props.currentGridHeight - SCROLL_SPEED });
             //this._columnset.resizeUp(this._columnset.getHeight() - SCROLL_SPEED);
@@ -135,6 +123,9 @@ class App extends Component {
     }
     getGridHeight = (topHeight = 0) => {
         return window.innerHeight - topHeight;
+    }
+    isGridFullView = () => {
+        return this.props.gridActualHeight === Number.parseInt(window.innerHeight);
     }
     refColumnset = (columnset) => {
         this._columnset = columnset;
@@ -158,8 +149,7 @@ class App extends Component {
         });
     }
     render() {
-        const { topHeight, gridHeight, maxTopHeight, topExpanded, topCollapsed } = this.state;
-        /*
+        const { topHeight, gridHeight, maxTopHeight, topExpanded, topCollapsed, gridContentScroll } = this.state;
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
@@ -169,11 +159,10 @@ class App extends Component {
                 </div>
                 <ColumnSet
                     id="first"
-                    refColumnset={this.refColumnset}
-                    //addScrollHandler={this.addScrollHandler}
                     width={600}
                     columnWidth={180}
                     makeHeight={gridHeight}
+                    contentScroll={gridContentScroll}
                     fullViewSize={window.innerHeight}
                     data={this.props.cars}
                     childData={{
@@ -184,7 +173,7 @@ class App extends Component {
                 />
             </div>
         );
-        */
+        /*
         return (
             <div className="App">
                 <div style={{ height: maxTopHeight, marginTop: topHeight - maxTopHeight }}>
@@ -222,6 +211,7 @@ class App extends Component {
                 />
             </div>
         );
+        */
     }
 }
 
@@ -233,6 +223,9 @@ const mapStateToProps = ({ items, columnset }) => {
         cars: items.cars,
         yearCars: items.yearCars,
         //columns: columnset.columns,
+        gridActualHeight: columnset['first'] ? columnset['first'].height : 0,
+        gridIsScrollableDown: columnset['first'] && columnset['first'].columns.reduce((acc, col) => col.isScrollableDown() || acc, false),
+        gridIsScrollableUp: columnset['first'] && columnset['first'].columns.reduce((acc, col) => col.isScrollableUp() || acc, false),
     };
 };
 

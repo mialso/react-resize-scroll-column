@@ -54,7 +54,7 @@ export default (state = initialState, action) => {
                 generateItems(3, '13', 50, 200),
                 generateItems(15, '14', 50, 200),
             ];
-            state.cars = generateCarItems(100);
+            state.cars = generateCarItems(20);
             state.yearCars = {
                 '50s': state.cars.filter(car => car.year >= 1950 && car.year < 1960),
                 '60s': state.cars.filter(car => car.year >= 1960 && car.year < 1970),

@@ -6,15 +6,13 @@ import {
     columnsetDataUpdate,
     columnsetResizeDown,
     columnsetResizeUp,
-    columnsetScrollDown,
-    columnsetScrollUp,
+    //columnsetScrollDown,
+    //columnsetScrollUp,
+    columnsetScroll,
 } from '../actions/columnset'
 
 export class ColumnSet extends React.Component {
     componentDidMount() {
-        if (this.props.refColumnset) {
-            this.props.refColumnset(this);
-        }
         this.props.columnsetInitHeight({
             height: this.props.makeHeight,
             width: this.props.width,
@@ -27,6 +25,9 @@ export class ColumnSet extends React.Component {
     componentWillReceiveProps(newProps) {
         if (newProps.data !== this.props.data) {
             this.props.columnsetDataUpdate({ data: newProps.data, isSet: this.props.isSet }, this.getMyMeta());
+        }
+        if (newProps.contentScroll !== this.props.contentScroll) {
+            this.props.columnsetScroll({ contentPosition: newProps.contentScroll }, this.getMyMeta());
         }
         if (newProps.makeHeight !== this.props.makeHeight) {
             if (!this.isScrollableUp()) {
@@ -41,14 +42,6 @@ export class ColumnSet extends React.Component {
     }
     getMyMeta() {
         return { id: this.props.id };
-    }
-    scrollHandler = (amount, dir) => {
-        if (dir === 'up') {
-            return this.props.columnsetScrollUp(amount, this.getMyMeta());
-        } else {
-            return this.props.columnsetScrollDown(amount, this.getMyMeta());
-        }
-        return;
     }
     isScrollableDown = () => {
         return this.props.isScrollableDown;
@@ -96,7 +89,8 @@ export default connect(
         columnsetInitHeight,
         columnsetResizeDown,
         columnsetResizeUp,
-        columnsetScrollDown,
-        columnsetScrollUp,
+        //columnsetScrollDown,
+        //columnsetScrollUp,
+        columnsetScroll,
     }
 )(ColumnSet);

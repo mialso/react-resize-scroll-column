@@ -4,6 +4,7 @@ export const COLUMNSET_RESIZE_DOWN = 'COLUMNSET_RESIZE_DOWN';
 export const COLUMNSET_RESIZE_UP = 'COLUMNSET_RESIZE_UP';
 export const COLUMNSET_DATA_UPDATE = 'COLUMNSET_DATA_UPDATE';
 export const COLUMNSET_INIT_HEIGHT = 'COLUMNSET_INIT_HEIGHT';
+export const COLUMNSET_SCROLL = 'COLUMNSET_SCROLL';
 
 export const columnsetInitHeight = (data, meta) => {
     return {
@@ -32,6 +33,14 @@ export const columnsetResizeDown = (data, meta) => {
 export const columnsetResizeUp = (data, meta) => {
     return {
         type: COLUMNSET_RESIZE_UP,
+        payload: data,
+        meta,
+    };
+};
+
+export const columnsetScroll = (data, meta) => {
+    return {
+        type: COLUMNSET_SCROLL,
         payload: data,
         meta,
     };
